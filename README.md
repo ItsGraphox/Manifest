@@ -42,6 +42,7 @@ Tap **Dive** to sort unsorted items one card at a time. Swipe left for Low, up f
 
 Tap the gear at the top right. Your settings stay on the device.
 
+- **Interface:** Original, Color field, or Hardware. Each restyles both screens and every panel; your items and settings carry over, so you can switch any time.
 - **Theme:** four color sets for High / Med / Low plus the accent color.
 - **Display:** text size (S–XL), row height, and whether rows show serial numbers.
 - **List:** order (by level, newest first, or oldest first, which matches the order things were added), which screen the app opens to, and which level the Enter key saves as.
