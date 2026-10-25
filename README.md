@@ -38,6 +38,19 @@ Two ways, and both land as **Unsorted** (no level yet):
 
 Tap **Dive** to sort unsorted items one card at a time. Swipe left for Low, up for Med, right for High, and down to skip, or use the buttons. When nothing is unsorted, Dive runs through every open item so you can re-rank.
 
+## Settings
+
+Tap the gear at the top right. Your settings stay on the device.
+
+- **Theme:** four color sets for High / Med / Low plus the accent color.
+- **Display:** text size (S–XL), row height, and whether rows show serial numbers.
+- **List:** order (by level, newest first, or oldest first, which matches the order things were added), which screen the app opens to, and which level the Enter key saves as.
+- **Motion:** glitch effects (Full, Subtle, Off) and the boot sequence.
+- **Companion:** on/off, how often it speaks up on its own, whether taps can get sass or only tasks, which corner it sits in, and its face. Type any face; if it has a mouth character like `⩊` `ω` `ᴥ` `‿` and dot eyes `•`, those animate.
+- **Data:** import, copy everything as text, clear completed items, or erase everything (asks twice, and Undo is offered).
+
+The **Sort** button next to the search field on the list cycles Level → Newest → Oldest.
+
 ## Privacy
 
 Your items are stored only on the device, in the app's local storage. Nothing is sent anywhere and nothing is written to the repository. A Home Screen app keeps its own storage, separate from Safari's, so items added in Safari won't appear in the installed app and the other way round.
