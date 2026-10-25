@@ -1,6 +1,6 @@
 // Manifest offline cache.
 // Bump VERSION whenever you change index.html so phones pick up the new build.
-const VERSION = 'manifest-v1';
+const VERSION = 'manifest-v2';
 const SHELL = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
+  './icons/apple-touch-icon.png?v=2',
   './icons/favicon-32.png'
 ];
 

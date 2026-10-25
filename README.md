@@ -29,7 +29,14 @@ Built as a Home Screen web app: no App Store, no build step. It is plain HTML, C
 
 ## Bring your old list in
 
-Copy your list as bullets (`*`, `-`, `•` or `1.`), paste it into the input, and tap a level. Every line becomes its own item.
+Two ways, and both land as **Unsorted** (no level yet):
+
+- Paste a multi-line list straight into the capture input and tap **Add unsorted**.
+- On the list screen, tap **Import** and paste, or load a `.txt`, `.md` or `.csv` file. Bullets, numbers and `[ ]` checkboxes are stripped, headings are ignored, and anything already on your list is skipped.
+
+## Deep Dive
+
+Tap **Dive** to sort unsorted items one card at a time. Swipe left for Low, up for Med, right for High, and down to skip, or use the buttons. When nothing is unsorted, Dive runs through every open item so you can re-rank.
 
 ## Privacy
 
@@ -45,3 +52,4 @@ Edit `index.html`, then bump `VERSION` at the top of `sw.js` (for example `manif
 - **List:** swipe a row right to mark it done, left to delete, or tap it to edit or change its level.
 - **Switching screens:** swipe left from Capture to the list. Tap "‹ Add" or swipe in from the left edge to go back.
 - **The cat:** tap it for a suggestion.
+- **Deep Dive:** arrow keys work too (← Low, ↑ Med, → High, ↓ Skip).

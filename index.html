@@ -10,7 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="Manifest">
 <meta name="theme-color" content="#0a0b0c">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png?v=2">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="icons/apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,500;62..125,700&family=Big+Shoulders+Stencil+Display:wght@700&family=Martian+Mono:wdth,wght@75..112.5,400;75..112.5,500&display=swap">
@@ -24,7 +25,7 @@
   --ink:#e9ebe4; --dim:#8a8f88; --row-ink:#0a0b0c;
   --acid:#e2ff1f;   /* system chartreuse: chrome, focus, caret */
   --mag:#ff1a8c; --orange:#ff6a10; --blue:#2f4bff; --blue-t:#8193ff;  /* High / Med / Low */
-  --hot:var(--mag); --ice:#4fd8ff;
+  --hot:var(--mag); --ice:#4fd8ff; --bone:#d9dccc;
   --stencil:"Big Shoulders Stencil Display", "Impact", "Arial Narrow", sans-serif;
   --wide:"Archivo", "Arial Black", "Helvetica Neue", sans-serif;
   --mono:"Martian Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
@@ -32,6 +33,8 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
+html{background:var(--void)}
+[hidden]{display:none!important}
 body{margin:0;background:var(--stage);color:var(--ink);font-family:var(--mono);font-size:15px;line-height:1.5;font-variation-settings:"wdth" 87.5;overflow:hidden;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
   background-image:radial-gradient(rgba(233,235,228,.05) 1px, transparent 1.2px);background-size:4px 4px}
@@ -85,7 +88,7 @@ body{margin:0;background:var(--stage);color:var(--ink);font-family:var(--mono);f
 .sbar .sig{display:flex;gap:2px;align-items:flex-end;height:11px}.sbar .sig i{width:3px;background:var(--ink);border-radius:1px}
 .homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--ink);opacity:.85;z-index:30;pointer-events:none}
 body.bare{padding:0;background:var(--void)}
-body.bare .stage{display:block}
+body.bare .stage{display:block;position:fixed;inset:0;height:auto}
 body.bare .scaler{width:100%;height:100%;transform:none!important}
 body.bare .device{width:100%;height:100%;border-radius:0;padding:0;box-shadow:none}
 body.bare .screen{border-radius:0;padding-top:env(safe-area-inset-top, 0px)}
@@ -260,6 +263,60 @@ body.bare .buddy{bottom:calc(14px + env(safe-area-inset-bottom, 0px))}
 .sb:focus-visible{outline:2px solid var(--acid);outline-offset:1px}
 .row.ping .face{animation:slice .3s steps(1,end) 2}
 
+/* unsorted, header buttons */
+.mbtns{display:flex;gap:6px}
+.ghostb{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:transparent;color:var(--ink);border:1px solid var(--rule);padding:7px 9px;cursor:pointer;min-height:32px}
+.ghostb:hover{border-color:var(--ink)}
+.ghostb:focus-visible{outline:2px solid var(--acid);outline-offset:1px}
+.ghostb:disabled{opacity:.35;cursor:default}
+.ghostb.dv{border-color:var(--acid);color:var(--acid)}
+.ghostb.del{color:var(--mag)}
+.gdive{order:2;font-family:var(--mono);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:none;border:0;color:var(--acid);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.capdive{color:var(--acid)!important;margin-left:auto}
+.dbtns{display:flex;gap:12px}
+#detect .bulkadd{color:var(--acid);text-decoration:none;border:1px solid var(--acid);padding:2px 6px}
+/* overlays */
+.sheet,.dive{position:absolute;inset:0;z-index:28;background:var(--void);display:flex;flex-direction:column;gap:12px;padding:62px 18px 30px;
+  background-image:radial-gradient(rgba(233,235,228,.05) 1px, transparent 1.2px);background-size:4px 4px}
+body.bare .sheet,body.bare .dive{padding-top:calc(env(safe-area-inset-top, 0px) + 10px);padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 16px)}
+.ov-top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:3px solid var(--ink);padding-top:8px}
+.ov-top h2{margin:0;font-family:var(--stencil);font-size:40px;line-height:.9;text-transform:uppercase}
+.sheet p{margin:0}
+#shText{flex:1;min-height:0;resize:none;background:var(--panel);color:var(--ink);border:1px solid var(--rule);padding:12px;font-family:var(--mono);font-size:16px;line-height:1.5;outline:0}
+#shText:focus{border-color:var(--acid)}
+.sh-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.filebtn{display:inline-flex;align-items:center}
+#shCount b{color:var(--acid);font-weight:500}
+.bigb{font-family:var(--wide);font-variation-settings:"wdth" 112;font-weight:700;font-size:16px;letter-spacing:.06em;text-transform:uppercase;border:0;background:var(--acid);color:#000;padding:16px;cursor:pointer;min-height:54px}
+.bigb:disabled{background:transparent;color:var(--dim);box-shadow:inset 0 0 0 1px var(--rule);cursor:default}
+.bigb:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* deep dive */
+.dvc{font-variant-numeric:tabular-nums;color:var(--ink)}
+.dv-stage{position:relative;flex:1;min-height:0}
+.card{position:absolute;inset:6px 4px;background:var(--panel);border:1px solid var(--rule);display:flex;flex-direction:column;gap:14px;padding:18px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;overflow:hidden;
+  clip-path:polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));will-change:transform}
+.card.next{transform:scale(.94) translateY(14px);filter:brightness(.55);pointer-events:none}
+.card.pop{animation:cardpop .26s steps(4,end)}
+@keyframes cardpop{0%{transform:scale(.94) translateY(14px);filter:brightness(.55)}100%{transform:none;filter:none}}
+.card.fly{transition:transform .26s cubic-bezier(.3,.6,.4,1), opacity .26s;opacity:0}
+.card.back{transition:transform .2s ease-out}
+.card .xstrip{display:grid;grid-template-columns:repeat(6,1fr);height:18px;flex:none}
+.card .cmeta,.card .cfoot{display:flex;justify-content:space-between;position:relative}
+.card .ctext{position:relative;flex:1;display:flex;align-items:center;font-family:var(--wide);font-variation-settings:"wdth" 100;font-weight:500;font-size:28px;line-height:1.2;overflow-wrap:anywhere;overflow:hidden}
+.card .ctext.long{font-size:21px}
+.card .tint{position:absolute;inset:0;opacity:0;pointer-events:none}
+.card .stamp{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);font-family:var(--stencil);font-size:84px;line-height:1;text-transform:uppercase;padding:2px 14px;border:5px solid currentColor;opacity:0;pointer-events:none;white-space:nowrap;background:var(--void)}
+.dv-hint{display:flex;justify-content:space-between}
+.dv-pads{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.dv-pads .pad{height:64px}
+.pad[data-dl="1"]{background:var(--blue);color:#fff}.pad[data-dl="2"]{background:var(--orange)}.pad[data-dl="3"]{background:var(--mag)}
+.dv-sub{display:flex;gap:6px}
+.dv-sub .ghostb{flex:1}
+.dv-done{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.dv-done strong{font-family:var(--stencil);font-size:100px;line-height:.85;text-transform:uppercase;overflow:hidden}
+.dv-done .dbars{display:flex;flex-direction:column;gap:6px}
+.dv-done .dbar{display:flex;justify-content:space-between;padding:10px 12px;font-family:var(--wide);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+
 /* standalone / home screen */
 html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 button,.face,.pad{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -306,16 +363,17 @@ body.bare .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
                 <button class="pad" data-l="2" disabled><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i class="off" style="height:16px"></i></span>Med</button>
                 <button class="pad" data-l="3" disabled><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i style="height:16px"></i></span>High</button>
               </div>
-              <div class="peek micro"><span id="capStats"></span><button id="toList">List <span>‹‹</span></button></div>
+              <div class="peek micro"><span id="capStats"></span><button id="toList">List <span>‹‹</span></button><button id="capDive" class="capdive" hidden></button></div>
             </section>
 
             <section class="pane" id="man" aria-label="List">
               <div class="edge" id="edge" aria-hidden="true"></div>
               <div class="man-head">
-                <div class="mtop"><h2 id="listTitle">All items</h2><button class="back" id="toCap">‹ Add</button></div>
+                <div class="mtop"><h2 id="listTitle">All items</h2><div class="mbtns"><button class="ghostb" id="importBtn">Import</button><button class="ghostb dv" id="diveBtn">Dive</button><button class="back" id="toCap">‹ Add</button></div></div>
                 <label class="search micro" for="search"><span>Find</span><input id="search" type="search" aria-label="Search items"></label>
                 <div class="chips" role="group" aria-label="Filter">
                   <button class="chip" data-f="all" aria-pressed="true">All</button>
+                  <button class="chip" data-f="0" aria-pressed="false" hidden>New</button>
                   <button class="chip" data-f="3" aria-pressed="false">High</button>
                   <button class="chip" data-f="2" aria-pressed="false">Med</button>
                   <button class="chip" data-f="1" aria-pressed="false">Low</button>
@@ -334,6 +392,20 @@ body.bare .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
           <div class="say" id="say" hidden role="status" aria-live="polite"><div class="say-h micro"><span id="sayWho">^•⩊•^</span><button id="sayX" aria-label="Dismiss">✕</button></div><p id="sayText"></p><div class="say-a" id="sayA"></div></div>
           <button class="cat" id="cat" aria-label="Companion: tap for a suggestion"><canvas class="cbg" id="catBg" aria-hidden="true"></canvas><span class="cf" id="catFace">^•<span class="m">⩊</span>•^</span></button>
         </div>
+        <section class="sheet" id="sheet" hidden aria-label="Import">
+          <div class="ov-top"><h2>Import</h2><button class="ghostb" id="shX">Cancel</button></div>
+          <p class="micro">Paste a list, one item per line. Bullets, numbers and checkboxes are stripped, and anything already on your list is skipped. Or load a .txt, .md or .csv file.</p>
+          <textarea id="shText" aria-label="Paste items" placeholder="* Clean kitchen&#10;* Pay Bestbuy&#10;* Short animation idea"></textarea>
+          <div class="sh-row"><label class="ghostb filebtn" for="shFile">Choose file</label><input type="file" id="shFile" accept=".txt,.md,.csv,.markdown,text/plain,text/markdown,text/csv" hidden><span class="micro" id="shCount">0 new</span></div>
+          <button class="bigb" id="shGo" disabled>Import as unsorted</button>
+        </section>
+        <section class="dive" id="dive" hidden aria-label="Deep Dive">
+          <div class="ov-top"><button class="ghostb" id="dvX">✕ Close</button><span class="micro dvc" id="dvCount"></span><button class="ghostb" id="dvUndo" disabled>Undo</button></div>
+          <div class="dv-stage" id="dvStage"></div>
+          <div class="dv-hint micro"><span>← Low</span><span>↑ Med · ↓ Skip</span><span>High →</span></div>
+          <div class="dv-pads"><button class="pad" data-dl="1"><span class="bars"><i style="height:5px"></i><i class="off" style="height:10px"></i><i class="off" style="height:16px"></i></span>Low</button><button class="pad" data-dl="2"><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i class="off" style="height:16px"></i></span>Med</button><button class="pad" data-dl="3"><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i style="height:16px"></i></span>High</button></div>
+          <div class="dv-sub"><button class="ghostb" data-dact="skip">Skip</button><button class="ghostb" data-dact="done">Already done</button><button class="ghostb del" data-dact="del">Delete</button></div>
+        </section>
         <div class="boot" id="boot" aria-hidden="true">
           <div class="xstrip"><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i></div>
           <div class="lobes"><i></i><i></i><span class="bk"></span><span class="bl" id="bootLabel">Booting up</span></div>
@@ -351,10 +423,10 @@ body.bare .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
 <script>
 (()=>{
 const KEY='lifelist.v2', OLD='lifelist.v1', SEQ='lifelist.seq';
-const LABEL={1:'Low',2:'Med',3:'High'}, LONG={1:'Low',2:'Medium',3:'High'};
-const HUE={1:[230,100,60,38],2:[22,100,58,44],3:[328,100,62,47]};
-const SW={1:'var(--blue)',2:'var(--orange)',3:'var(--mag)'};
-const INK={1:'#fff',2:'#0a0b0c',3:'#0a0b0c'};
+const LABEL={0:'Unsorted',1:'Low',2:'Med',3:'High'}, LONG={0:'Unsorted',1:'Low',2:'Medium',3:'High'};
+const HUE={0:[78,14,86,62],1:[230,100,60,38],2:[22,100,58,44],3:[328,100,62,47]};
+const SW={0:'var(--bone)',1:'var(--blue)',2:'var(--orange)',3:'var(--mag)'};
+const INK={0:'#0a0b0c',1:'#fff',2:'#0a0b0c',3:'#0a0b0c'};
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SEED=[]; // starts empty: paste your list into the input to import it
 
@@ -428,7 +500,8 @@ entry.addEventListener('paste',e=>{
 });
 const pending=()=>bulk?bulk:(entry.value.trim()?[entry.value.trim()]:[]);
 function sync(){const n=pending().length;pads.forEach(b=>b.disabled=!n);
-  const d=$('#detect');d.innerHTML=bulk?`<span>${bulk.length} items from paste</span><button id="clrBulk">Clear</button>`:'';
+  const d=$('#detect');d.innerHTML=bulk?`<span>${bulk.length} items from paste</span><span class="dbtns"><button id="bulkAdd" class="bulkadd">Add unsorted ↵</button><button id="clrBulk">Clear</button></span>`:'';
+  const ba=$('#bulkAdd');if(ba)ba.onclick=()=>add(0);
   const c=$('#clrBulk');if(c)c.onclick=()=>{bulk=null;entry.value='';sync();entry.focus()}}
 entry.addEventListener('input',()=>{if(bulk){bulk=null}sync()});
 let ft;
@@ -436,7 +509,7 @@ function add(level,btn){
   const out=pending();if(!out.length)return;const base=Date.now();
   out.forEach((text,i)=>{seq++;const it={id:uid(),n:seq,text,level,created:base-i,done:false,src:'cap'};items.push(it);fresh.add(it.id)});
   bulk=null;entry.value='';sync();save();
-  jolt(btn||pads[level-1]);
+  jolt(btn||pads[level-1]||$('#field'));
   const f=$('#flash');f.style.setProperty('--fc',SW[level]);f.style.color=INK[level];f.classList.remove('show');void f.offsetWidth;
   scramble($('#flashId'),out.length>1?`+${out.length}`:pad(seq),220);$('#flashMsg').textContent=`Logged · ${LABEL[level]}`;f.classList.add('show');
   clearTimeout(ft);ft=setTimeout(()=>f.classList.remove('show'),RM?400:520);
@@ -445,7 +518,7 @@ function add(level,btn){
 }
 entry.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;
   if(m&&['1','2','3'].includes(e.key)){e.preventDefault();add(+e.key);return}
-  if(e.key==='Enter'){e.preventDefault();add(2)}
+  if(e.key==='Enter'){e.preventDefault();add(bulk?0:2)}
   if(e.key==='Escape'&&bulk){bulk=null;entry.value='';sync()}});
 pads.forEach(b=>b.addEventListener('click',()=>add(+b.dataset.l,b)));
 
@@ -505,7 +578,7 @@ const focusEdit=()=>requestAnimationFrame(()=>{const i=$('#list .edit input');if
 function renderLog(){
   const log=$('#log'),recent=items.filter(i=>!i.done).sort((a,b)=>b.created-a.created).slice(0,8).reverse();
   log.innerHTML='<div class="micro lh">Recent</div>';
-  if(!recent.length){log.insertAdjacentHTML('beforeend','<p class="logempty">Nothing logged yet. Type something below, or paste your old bulleted list to import it all at once.</p>')}
+  if(!recent.length){log.insertAdjacentHTML('beforeend','<p class="logempty">Nothing logged yet. Type something below, or paste your old list (one item per line) to bring it all in unsorted.</p>')}
   recent.forEach(it=>{const d=document.createElement('div');d.className='logrow';
     d.innerHTML=`<span class="sn"></span><span class="sw" style="background:${SW[it.level]}"></span><span class="tx"></span>`;
     d.querySelector('.sn').textContent=pad(it.n);d.querySelector('.tx').textContent=it.text;
@@ -524,17 +597,19 @@ function renderInner(){
   const open=items.filter(i=>!i.done),cleared=items.length-open.length,cnt=l=>open.filter(i=>i.level===l).length;
   $('#tabCount').textContent=pad2(open.length);$('#nextId').textContent='Next '+pad(seq+1);
   $('#capStats').textContent=`${pad2(open.length)} open · ${pad2(cnt(3))} high`;
-  $('#listTitle').textContent={all:'All items',3:'High',2:'Medium',1:'Low',done:'Cleared'}[filter];
-  document.querySelectorAll('.chip').forEach(c=>{const f=c.dataset.f,b={all:'All',3:'High',2:'Med',1:'Low',done:'Done'}[f];c.textContent=`${b} ${f==='all'?open.length:f==='done'?cleared:cnt(+f)}`});
+  const un=cnt(0);$('#diveBtn').textContent=un?`Dive ${un}`:'Dive';$('#capDive').hidden=!un;$('#capDive').textContent=`Sort ${un} ›`;
+  $('#listTitle').textContent={all:'All items',0:'Unsorted',3:'High',2:'Medium',1:'Low',done:'Cleared'}[filter];
+  document.querySelectorAll('.chip').forEach(c=>{const f=c.dataset.f,b={all:'All',0:'New',3:'High',2:'Med',1:'Low',done:'Done'}[f];if(f==='0')c.hidden=!cnt(0);c.textContent=`${b} ${f==='all'?open.length:f==='done'?cleared:cnt(+f)}`});
   renderLog();renderTally();
   const match=i=>!q||i.text.toLowerCase().includes(q),list=$('#list');list.innerHTML='';
   const groups=filter==='done'?[['Cleared',null,items.filter(i=>i.done&&match(i)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0))]]
-    :(filter==='all'?[3,2,1]:[+filter]).map(l=>[LONG[l],l,open.filter(i=>i.level===l&&match(i)).sort((a,b)=>b.created-a.created)]);
+    :(filter==='all'?[0,3,2,1]:[+filter]).map(l=>[LONG[l],l,open.filter(i=>i.level===l&&match(i)).sort((a,b)=>b.created-a.created)]);
   let any=false,idx=0;
   groups.forEach(([name,l,arr])=>{if(!arr.length)return;any=true;
     const g=document.createElement('section');g.className='group';
-    g.innerHTML=`<h3 class="ghead">${l?`<span class="sw" style="background:${SW[l]}"></span>`:''}${name}<span class="n">${pad2(arr.length)}</span></h3><div class="rows"></div>`;
-    const rows=g.querySelector('.rows');arr.forEach((it,i)=>rows.appendChild(row(it,l?ramp(l,i,arr.length):'var(--panel)',idx++)));list.appendChild(g)});
+    g.innerHTML=`<h3 class="ghead">${l!==null?`<span class="sw" style="background:${SW[l]}"></span>`:''}${name}${l===0?'<button class="gdive" data-dive>Deep Dive ›</button>':''}<span class="n">${pad2(arr.length)}</span></h3><div class="rows"></div>`;
+    const gd=g.querySelector('[data-dive]');if(gd)gd.onclick=()=>openDive();
+    const rows=g.querySelector('.rows');arr.forEach((it,i)=>rows.appendChild(row(it,l!==null?ramp(l,i,arr.length):'var(--panel)',idx++)));list.appendChild(g)});
   if(!any)list.innerHTML=`<div class="empty micro"><strong>${q?'No match':filter==='done'?'Nothing cleared':'Bucket empty'}</strong>${q?'Try a shorter search.':filter==='done'?'Swipe a row right and it lands here.':'Swipe back and add something.'}</div>`;
 }
 
@@ -543,21 +618,133 @@ function toast(msg,undo){const el=$('#toast');$('#toastMsg').textContent=msg;und
   u.onclick=()=>{if(undoFn)undoFn();undoFn=null;el.classList.remove('show')};
   el.classList.add('show');fx(el,'rgbonly',320);clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),3800)}
 $('#export').addEventListener('click',async()=>{
-  const txt=[3,2,1].map(l=>`${LONG[l].toUpperCase()}\n`+items.filter(i=>!i.done&&i.level===l).sort((a,b)=>b.created-a.created).map(i=>'* '+i.text).join('\n')).join('\n\n');
+  const txt=[0,3,2,1].filter(l=>items.some(i=>!i.done&&i.level===l)).map(l=>`${LONG[l].toUpperCase()}\n`+items.filter(i=>!i.done&&i.level===l).sort((a,b)=>b.created-a.created).map(i=>'* '+i.text).join('\n')).join('\n\n');
   try{await navigator.clipboard.writeText(txt);toast('Copied to clipboard')}catch(e){toast('Copy blocked here')}});
 
+
+/* ---------- import ---------- */
+const sheet=$('#sheet'),shText=$('#shText');
+let shCsv=false;
+function parseImport(raw,isCsv){
+  let lines=raw.split(/\r?\n/);
+  if(isCsv)lines=lines.map(l=>{const m=l.match(/^\s*"((?:[^"]|"")*)"|^([^,]*)/);return m?(m[1]!=null?m[1].replace(/""/g,'"'):(m[2]||'')):''});
+  const out=[];
+  lines.forEach(l=>{let t=l.trim();if(!t||/^#{1,6}\s/.test(t)||/^(-{3,}|\*{3,}|_{3,})$/.test(t))return;
+    t=t.replace(/^\s*(?:[*\-•–+]|\d+[.)])\s+/,'').replace(/^\[[ xX]\]\s*/,'').trim();if(t)out.push(t)});
+  const have=new Set(items.filter(i=>!i.done).map(i=>i.text.toLowerCase())),seen=new Set(),list=[];let dup=0;
+  out.forEach(t=>{const k=t.toLowerCase();if(have.has(k)||seen.has(k)){dup++;return}seen.add(k);list.push(t)});
+  return {list,dup};
+}
+function shSync(){const {list,dup}=parseImport(shText.value,shCsv);
+  $('#shCount').innerHTML=`<b>${list.length}</b> new${dup?` · ${dup} already on your list`:''}`;
+  $('#shGo').disabled=!list.length;$('#shGo').textContent=list.length?`Import ${list.length} as unsorted`:'Import as unsorted'}
+function openSheet(){sheet.hidden=false;shText.value='';shCsv=false;shSync();glitch(sheet);setTimeout(()=>shText.focus(),60)}
+function closeSheet(){if(RM){sheet.hidden=true;return}fx(sheet,'shatter',260);setTimeout(()=>{sheet.hidden=true;sheet.classList.remove('shatter')},240)}
+shText.addEventListener('input',shSync);
+$('#shX').onclick=closeSheet;$('#importBtn').onclick=openSheet;
+$('#shFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{shCsv=/\.csv$/i.test(f.name);shText.value=String(r.result);shSync();glitch($('#shCount'))};r.readAsText(f);e.target.value=''});
+$('#shGo').onclick=()=>{const {list}=parseImport(shText.value,shCsv);if(!list.length)return;const base=Date.now();
+  list.forEach((text,i)=>{seq++;items.push({id:uid(),n:seq,text,level:0,created:base-i,done:false})});
+  save();closeSheet();filter='all';document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));stagger=true;render();
+  toast(`${list.length} imported · unsorted`)};
+
+/* ---------- deep dive ---------- */
+const dive=$('#dive'),stage=$('#dvStage');
+let dq=[],di=0,dhist=[],dtally={},dmode='unsorted';
+const DIR={1:{l:'Low',c:'var(--blue)'},2:{l:'Med',c:'var(--orange)'},3:{l:'High',c:'var(--mag)'},skip:{l:'Skip',c:'var(--bone)'}};
+const byId=id=>items.find(i=>i.id===id);
+function openDive(){
+  const open=items.filter(i=>!i.done);let q_=open.filter(i=>i.level===0);dmode='unsorted';
+  if(!q_.length){q_=open.slice();dmode='all'}
+  if(!q_.length){toast('Nothing to sort');return}
+  dq=q_.sort((a,b)=>b.created-a.created).map(i=>i.id);di=0;dhist=[];dtally={1:0,2:0,3:0,skip:0,done:0,del:0};
+  hush();dive.hidden=false;entry.blur();glitch(dive);drawCards(true);
+}
+function closeDive(){render();if(RM){dive.hidden=true;return}fx(dive,'shatter',260);setTimeout(()=>{dive.hidden=true;dive.classList.remove('shatter')},240)}
+$('#dvX').onclick=closeDive;$('#diveBtn').onclick=openDive;$('#capDive').onclick=openDive;
+function current(){while(di<dq.length){const it=byId(dq[di]);if(it&&!it.done)return it;di++}return null}
+function cardEl(it,next){
+  const c=document.createElement('div');c.className='card'+(next?' next':'');
+  c.innerHTML=`<div class="tint"></div><div class="xstrip"><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i><i class="xbox"></i></div>
+    <div class="cmeta micro"><span class="sn"></span><span class="lv"></span></div><div class="ctext"></div>
+    <div class="cfoot micro"><span class="ag"></span><span>Swipe to sort</span></div><div class="stamp"></div>`;
+  c.querySelector('.sn').textContent=pad(it.n);c.querySelector('.lv').textContent=it.level?`Now ${LABEL[it.level]}`:'Unsorted';
+  const t=c.querySelector('.ctext');t.textContent=it.text;if(it.text.length>70)t.classList.add('long');
+  c.querySelector('.ag').textContent='Added '+age(it.created)+' ago';
+  return c;
+}
+function drawCards(first){
+  stage.innerHTML='';$('#dvUndo').disabled=!dhist.length;
+  const it=current();if(!it){finishDive();return}
+  $('#dvCount').textContent=`${pad2(di+1)} / ${pad2(dq.length)}${dmode==='all'?' · re-rank':''}`;
+  for(let k=di+1;k<dq.length;k++){const n=byId(dq[k]);if(n&&!n.done){stage.appendChild(cardEl(n,true));break}}
+  const c=cardEl(it,false);stage.appendChild(c);
+  if(!RM){c.classList.add('pop');setTimeout(()=>c.classList.remove('pop'),280);scramble(c.querySelector('.sn'),pad(it.n),240);if(!first)scramble(c.querySelector('.ctext'),it.text,260)}
+  bindCard(c);
+}
+function aim(c,dir,s){
+  const tint=c.querySelector('.tint'),st=c.querySelector('.stamp');
+  if(!dir){tint.style.opacity=0;st.style.opacity=0;delete c.dataset.armed;return}
+  const d=DIR[dir];tint.style.background=d.c;tint.style.opacity=Math.min(.85,s*.85);
+  st.textContent=d.l;st.style.color=dir==='skip'?'var(--ink)':d.c;st.style.opacity=Math.min(1,s);
+  if(s>=1&&c.dataset.armed!==String(dir)){c.dataset.armed=dir;glitch(st)}else if(s<1)delete c.dataset.armed;
+}
+function bindCard(c){
+  let sx,sy,dx=0,dy=0,on=false;
+  const dirOf=()=>Math.abs(dx)>Math.abs(dy)?(dx>0?3:1):(dy<0?2:'skip');
+  const strength=()=>Math.max(Math.abs(dx),Math.abs(dy))/Math.min(110,c.offsetWidth*.32);
+  c.addEventListener('pointerdown',e=>{on=true;sx=e.clientX;sy=e.clientY;dx=dy=0;c.classList.remove('back');try{c.setPointerCapture(e.pointerId)}catch(_){}});
+  c.addEventListener('pointermove',e=>{if(!on)return;dx=e.clientX-sx;dy=e.clientY-sy;c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*.06}deg)`;
+    const s=strength();aim(c,s>.15?dirOf():null,s)});
+  const end=()=>{if(!on)return;on=false;if(strength()>=1)decide(dirOf(),c);else{c.classList.add('back');c.style.transform='';aim(c,null,0)}};
+  c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+}
+function decide(dir,c){
+  const it=current();if(!it)return;c=c||stage.querySelector('.card:not(.next)');
+  const h={id:it.id,level:it.level,done:it.done,obj:null,at:-1,dir};
+  if(dir==='done'){it.done=true;it.doneAt=Date.now()}
+  else if(dir==='del'){h.at=items.indexOf(it);h.obj=it;items.splice(h.at,1)}
+  else if(dir!=='skip'){it.level=dir}
+  dtally[dir]++;dhist.push(h);save();di++;
+  const vec={1:[-1,0],3:[1,0],2:[0,-1],skip:[0,1],done:[1,-1],del:[0,0]}[dir];
+  if(c&&!RM){
+    if(DIR[dir])aim(c,dir,1.2);
+    if(dir==='del')fx(c,'shatter',260);else{c.classList.add('fly');const w=stage.offsetWidth*1.5;c.style.transform=`translate(${vec[0]*w}px,${vec[1]*w}px) rotate(${vec[0]*22}deg)`}
+    const nx=stage.querySelector('.card.next');if(nx){nx.style.transition='transform .2s steps(3,end), filter .2s';nx.style.transform='none';nx.style.filter='none'}
+    setTimeout(()=>drawCards(false),230);
+  }else drawCards(false);
+}
+$('#dvUndo').onclick=()=>{const h=dhist.pop();if(!h)return;
+  if(h.obj&&!byId(h.id))items.splice(Math.max(0,h.at),0,h.obj);
+  const it=byId(h.id);if(it){it.level=h.level;it.done=h.done}
+  dtally[h.dir]--;const k=dq.indexOf(h.id);if(k>=0)di=k;save();glitch(stage);drawCards(false)};
+document.querySelectorAll('[data-dl]').forEach(b=>b.addEventListener('click',()=>{jolt(b);decide(+b.dataset.dl)}));
+document.querySelectorAll('[data-dact]').forEach(b=>b.addEventListener('click',()=>decide(b.dataset.dact)));
+addEventListener('keydown',e=>{if(dive.hidden)return;const k={ArrowLeft:1,ArrowUp:2,ArrowRight:3,ArrowDown:'skip'}[e.key];
+  if(k){e.preventDefault();e.stopPropagation();decide(k)}else if(e.key==='Escape'){e.stopPropagation();closeDive()}},true);
+function finishDive(){
+  $('#dvCount').textContent=`${pad2(dq.length)} / ${pad2(dq.length)}`;$('#dvUndo').disabled=!dhist.length;
+  const sorted=dtally[1]+dtally[2]+dtally[3],extra=[dtally.skip&&`${dtally.skip} skipped`,dtally.done&&`${dtally.done} already done`,dtally.del&&`${dtally.del} deleted`].filter(Boolean).join(' · ');
+  const d=document.createElement('div');d.className='dv-done';
+  d.innerHTML=`<div class="micro">Run complete</div><strong>${pad2(sorted)}<br>sorted</strong><div class="dbars">${[3,2,1].map(l=>`<div class="dbar" style="background:${SW[l]};color:${INK[l]}"><span>${LONG[l]}</span><span>+${pad2(dtally[l])}</span></div>`).join('')}</div>
+    <div class="micro">${extra}</div><button class="bigb" id="dvBack">Back to list</button>`;
+  stage.appendChild(d);glitch(d);
+  d.querySelector('#dvBack').onclick=()=>{closeDive();go(1)};
+}
 
 /* ---------- companion ----------
    Lines are placeholders: rewrite them in your own voice. {task} {id} {age} {open} {high} get filled in. */
 const LINES={
   nag:['{id} {task} has been sitting for {age}.','Still on the list: {task}. {age} and counting.','{task}. Just saying.'],
   sass:['{open} open. I counted. Twice.','I supervise. You do.','{high} high-priority items and you opened the cat.','Nap later. Or now. I am not your boss.'],
-  pick:['Try this one: {task}','Here is one: {task}','{task}. Small win, go.']
+  pick:['Try this one: {task}','Here is one: {task}','{task}. Small win, go.'],
+  dive:['{unsorted} things with no level. Deep Dive?','{unsorted} unsorted. Want to swipe through them?']
 };
 const cat=$('#cat'),say=$('#say'),face=$('#catFace');
 
 function age(ts){const m=(Date.now()-ts)/6e4;if(m<60)return Math.max(1,m|0)+' min';const h=m/60;if(h<24)return (h|0)+(h<2?' hour':' hours');const d=h/24|0;return d+(d===1?' day':' days')}
-function pickTask(){const open=items.filter(i=>!i.done);if(!open.length)return null;const w={1:1,2:2,3:4};
+function pickTask(){const open=items.filter(i=>!i.done);if(!open.length)return null;const w={0:1.5,1:1,2:2,3:4};
   const ws=open.map(i=>w[i.level]*(1+(Date.now()-i.created)/864e5));let r=Math.random()*ws.reduce((a,b)=>a+b,0);
   for(let k=0;k<open.length;k++){r-=ws[k];if(r<=0)return open[k]}return open[0]}
 const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -582,7 +769,9 @@ cat.onclick=()=>{if(!say.hidden){hush();return}
   if(Math.random()<.6)suggest();else{const it=pickTask();speak(fill(rnd(LINES.sass),it),[],7000)}};
 (function wander(){setTimeout(()=>{
   if(say.hidden&&!editing&&!document.hidden&&!entry.value){
-    const it=pickTask();if(it)speak(fill(rnd(LINES.nag),it),[['Show me',()=>showMe(it),true],['Done',()=>complete(it,true)]],9000)}
+    const un=items.filter(i=>!i.done&&i.level===0).length;
+    if(un>=5&&Math.random()<.4){speak(fill(rnd(LINES.dive),null).replace('{unsorted}',un),[['Deep Dive',()=>openDive(),true],['Later']],9000)}
+    else{const it=pickTask();if(it)speak(fill(rnd(LINES.nag),it),[['Show me',()=>showMe(it),true],['Done',()=>complete(it,true)]],9000)}}
   wander()},(page===0?40000:30000)+Math.random()*35000)})();
 /* face: eyes + mouth, so the mouth can animate while it talks */
 let talking=false,talkT=null,mouthT=null;
