@@ -356,6 +356,9 @@ body.bare .sets{padding-top:calc(env(safe-area-inset-top, 0px) + 10px)}
 .preview{display:flex;align-items:center;gap:12px}
 .preview .cat{animation:none;pointer-events:none}
 .sact{display:flex;flex-wrap:wrap;gap:6px}
+.seg.species{display:grid;grid-template-columns:repeat(4,1fr)}
+.seg.species button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;min-height:58px}
+.seg.species .spf{font-size:14px;letter-spacing:-.02em;text-transform:none;white-space:nowrap}
 .sact .ghostb{flex:1 1 auto}
 .ghostb.arm{background:var(--mag);color:#000;border-color:var(--mag)}
 .sfoot{color:var(--dim)}
@@ -496,7 +499,8 @@ const THEMES={
   mono:{name:'Grayscale',hi:'#f2f2ea',med:'#a3a6a0',lo:'#4a4d4f',loT:'#a3a6a0',acc:'#e2ff1f',
     hue:{1:[200,4,34,24],2:[80,4,64,48],3:[60,10,95,78]},ink:{1:'#fff',2:'#0a0b0c',3:'#0a0b0c'}}
 };
-const DEFAULTS={theme:'default',textSize:'m',density:'normal',sort:'level',serials:'on',enter:2,start:'capture',
+const SPECIES={cat:{name:'Cat',face:'^•⩊•^'},dog:{name:'Dog',face:'U•ᴥ•U'},bunny:{name:'Bunny',face:'(\\•ㅅ•/)'},fox:{name:'Fox',face:'ʌ•ω•ʌ'}};
+const DEFAULTS={species:'cat',theme:'default',textSize:'m',density:'normal',sort:'level',serials:'on',enter:2,start:'capture',
   fx:'full',boot:'on',pet:'on',chat:'normal',sass:'on',side:'right',face:'^•⩊•^'};
 let settings=(()=>{try{return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){return Object.assign({},DEFAULTS)}})();
 const saveSettings=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(settings))}catch(e){}};
@@ -515,6 +519,8 @@ function applySettings(){
   d.dataset.serials=settings.serials;d.dataset.pet=settings.pet;d.dataset.petSide=settings.side;d.dataset.fx=settings.fx;
   RM=REDUCE||settings.fx==='off';SUB=settings.fx==='subtle';
   parseFace();setFace(null,null);
+  const sw=document.getElementById('sayWho');if(sw)sw.textContent=settings.face;
+  const cb=document.getElementById('cat');if(cb)cb.setAttribute('aria-label',`${(SPECIES[settings.species]||SPECIES.cat).name}: tap for a suggestion`);
 }
 
 const SEED=[]; // starts empty: paste your list into the input to import it
@@ -830,7 +836,7 @@ function finishDive(){
    Lines are placeholders: rewrite them in your own voice. {task} {id} {age} {open} {high} get filled in. */
 const LINES={
   nag:['{id} {task} has been sitting for {age}.','Still on the list: {task}. {age} and counting.','{task}. Just saying.'],
-  sass:['{open} open. I counted. Twice.','I supervise. You do.','{high} high-priority items and you opened the cat.','Nap later. Or now. I am not your boss.'],
+  sass:['{open} open. I counted. Twice.','I supervise. You do.','{high} high-priority items and you tapped the {pet}.','Nap later. Or now. I am not your boss.'],
   pick:['Try this one: {task}','Here is one: {task}','{task}. Small win, go.'],
   dive:['{unsorted} things with no level. Deep Dive?','{unsorted} unsorted. Want to swipe through them?']
 };
@@ -843,7 +849,7 @@ function pickTask(){const open=items.filter(i=>!i.done);if(!open.length)return n
 const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function fill(tpl,it){const open=items.filter(i=>!i.done);
   return esc(tpl).replace('{task}',it?`<em>${esc(it.text)}</em>`:'something').replace('{id}',it?pad(it.n):'').replace('{age}',it?age(it.created):'')
-    .replace('{open}',open.length).replace('{high}',open.filter(i=>i.level===3).length)}
+    .replace('{pet}',(SPECIES[settings.species]||SPECIES.cat).name.toLowerCase()).replace('{open}',open.length).replace('{high}',open.filter(i=>i.level===3).length)}
 const rnd=a=>a[Math.random()*a.length|0];
 let hideT;
 function speak(html,acts=[],ttl=0){
@@ -968,8 +974,9 @@ function drawSettings(){
     ${REDUCE?'<p class="micro" style="margin:0">Reduce Motion is on for this device, so effects stay off.</p>':''}
   </section>
   <section class="sgroup"><h3>Companion</h3>
-    <div class="preview"><span class="cat" aria-hidden="true" style="background:var(--brick,#0b2a9a)"><span class="cf" id="facePrev"></span></span><span class="micro">Tap the real one for a suggestion</span></div>
+    <div class="preview"><span class="cat" aria-hidden="true" style="background:var(--brick,#0b2a9a)"><span class="cf" id="facePrev"></span></span><span class="micro">Tap the real one in the corner for a suggestion</span></div>
     <div class="srow"><div class="lab micro"><span>Companion</span></div>${SEG('pet',[['on','On'],['off','Off']])}</div>
+    <div class="srow"><div class="lab micro"><span>Animal</span></div><div class="seg species" role="group">${Object.entries(SPECIES).map(([k,v])=>`<button data-sp="${k}" aria-pressed="${settings.species===k}"><span class="spf"></span><span>${v.name}</span></button>`).join('')}</div></div>
     <div class="srow"><div class="lab micro"><span>Speaks up on its own</span></div>${SEG('chat',[['quiet','Never'],['normal','Sometimes'],['chatty','Often']])}</div>
     <div class="srow"><div class="lab micro"><span>When tapped</span></div>${SEG('sass',[['on','Tasks + sass'],['off','Tasks only']])}</div>
     <div class="srow"><div class="lab micro"><span>Corner</span></div>${SEG('side',[['left','Left'],['right','Right']])}</div>
@@ -981,10 +988,14 @@ function drawSettings(){
     <div class="sact"><button class="ghostb del" id="sErase">Erase everything</button></div>
     <p class="micro sfoot" style="margin:0">${items.length} items · stored on this device only</p>
   </section>`;
+  $('#setsBody').querySelectorAll('[data-sp]').forEach(b=>{b.querySelector('.spf').textContent=SPECIES[b.dataset.sp].face;b.onclick=()=>{
+    settings.species=b.dataset.sp;settings.face=SPECIES[b.dataset.sp].face;saveSettings();applySettings();
+    $('#setsBody').querySelectorAll('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#faceIn').value=settings.face;
+    $('#facePrev').innerHTML=faceHTML(null,null);glitch($('#facePrev'));glitch(cat);jolt(b)}});
   const fi=$('#faceIn');fi.value=settings.face;$('#facePrev').innerHTML=faceHTML(null,null);
-  fi.addEventListener('input',()=>{settings.face=fi.value.trim()||DEFAULTS.face;saveSettings();parseFace();setFace(null,null);$('#facePrev').innerHTML=faceHTML(null,null)});
-  $('#faceReset').onclick=()=>{settings.face=DEFAULTS.face;fi.value=settings.face;saveSettings();parseFace();setFace(null,null);$('#facePrev').innerHTML=faceHTML(null,null);glitch($('#facePrev'))};
-  $('#setsBody').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+  fi.addEventListener('input',()=>{settings.face=fi.value.trim()||SPECIES[settings.species].face;saveSettings();applySettings();$('#facePrev').innerHTML=faceHTML(null,null)});
+  $('#faceReset').onclick=()=>{settings.face=SPECIES[settings.species].face;fi.value=settings.face;saveSettings();applySettings();$('#facePrev').innerHTML=faceHTML(null,null);glitch($('#facePrev'))};
+  $('#setsBody').querySelectorAll('.seg button[data-k]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.k;let v=b.dataset.v;if(k==='enter')v=+v;settings[k]=v;saveSettings();
     b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));jolt(b);
     applySettings();if(k==='sort')syncSort();render();if(k==='pet'&&v==='on')glitch(cat)});

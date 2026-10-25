@@ -1,6 +1,6 @@
 // Manifest offline cache.
 // Bump VERSION whenever you change index.html so phones pick up the new build.
-const VERSION = 'manifest-v3';
+const VERSION = 'manifest-v4';
 const SHELL = [
   './',
   './index.html',
