@@ -136,6 +136,10 @@ body.bare .island,body.bare .sbar,body.bare .homebar,body.bare .caption{display:
 .pad:disabled{background:transparent;color:var(--dim);box-shadow:inset 0 0 0 1px var(--rule);cursor:default}
 .pad:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .pad:not(:disabled):hover{filter:brightness(1.08)}
+.build{flex:none;align-self:flex-start;margin-top:-6px;padding:0;background:none;border:0;font-family:var(--mono);font-size:12px;line-height:1.4;letter-spacing:.04em;color:var(--dim);text-align:left;cursor:default}
+.build.ready{color:var(--acid);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.skin .build{letter-spacing:0}
+html[data-ui="a"] .build{margin-top:-4px}
 .peek{flex:none;display:flex;justify-content:flex-start;gap:16px;align-items:center;padding-right:80px;min-height:46px}
 .peek button{font:inherit;color:var(--ink);background:none;border:0;cursor:pointer;padding:6px 0;text-transform:uppercase;letter-spacing:.08em}
 .peek button span{color:var(--acid)}
@@ -594,6 +598,7 @@ body.bare .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
                 <button class="pad" data-l="3" disabled><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i style="height:16px"></i></span><span class="pl">High</span><span class="pc"></span></button>
               </div>
               <div class="peek micro"><span id="capStats"></span><button id="toList">List <span>‹‹</span></button><button id="capDive" class="capdive" hidden></button></div>
+              <button class="build" id="build" aria-live="polite"></button>
             </section>
 
             <section class="pane" id="man" aria-label="List">
@@ -1254,7 +1259,18 @@ $('#sortBtn').onclick=()=>{settings.sort=SORTN[settings.sort]||'level';saveSetti
 syncSort();
 
 applySettings();save();sync();render();go(settings.start==='list'?1:0,false);
-if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+/* build stamp: bump BUILD (and VERSION in sw.js) with every release */
+const BUILD={v:7,at:'2026-10-25T17:00:00-04:00'};
+(function stamp(){const b=$('#build'),d=new Date(BUILD.at);
+  const when=d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  b.textContent=`v${BUILD.v} · updated ${when}`;b.title=`Manifest version ${BUILD.v}, released ${d.toLocaleString()}`;
+  window.showUpdateReady=()=>{b.textContent=`v${BUILD.v} · new version ready, tap to load`;b.classList.add('ready');b.onclick=()=>location.reload()}})();
+if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(reg=>{
+  // a new worker means a newer build was just downloaded in the background
+  reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='activated'&&hadController)showUpdateReady()})});
+  const hadController=!!navigator.serviceWorker.controller;
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})});
+}).catch(()=>{}))}
 setTimeout(()=>scramble($('#live'),'Input ready',400),900);
 })();
 </script>

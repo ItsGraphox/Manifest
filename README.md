@@ -58,7 +58,7 @@ Your items are stored only on the device, in the app's local storage. Nothing is
 
 ## Updating
 
-Edit `index.html`, then bump `VERSION` at the top of `sw.js` (for example `manifest-v2`) and push. The installed app loads the new version on the next launch or the one after.
+Edit `index.html`, bump `BUILD` near the end of `index.html` and `VERSION` at the top of `sw.js` to the same number, then push. The version and release time show in the bottom-left of the capture screen; when the app has downloaded a newer build in the background, that line turns into "new version ready, tap to load". The installed app loads the new version on the next launch or the one after.
 
 ## Controls
 
