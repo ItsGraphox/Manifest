@@ -29,7 +29,7 @@ Built as a Home Screen web app: no App Store, no build step. It is plain HTML, C
 
 ## Bring your old list in
 
-Two ways, and both land as **Unsorted** (no level yet):
+Two ways. Plain lists land as **Unsorted**; a line that just says High, Medium, Low or Unsorted sets the level for the items under it, so text from **Copy as text** comes back with its levels (and re-levels items already on your list):
 
 - Paste a multi-line list straight into the capture input and tap **Add unsorted**.
 - On the list screen, tap **Import** and paste, or load a `.txt`, `.md` or `.csv` file. Bullets, numbers and `[ ]` checkboxes are stripped, headings are ignored, and anything already on your list is skipped.
