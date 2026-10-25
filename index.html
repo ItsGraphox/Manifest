@@ -29,7 +29,7 @@
   --stencil:"Big Shoulders Stencil Display", "Impact", "Arial Narrow", sans-serif;
   --wide:"Archivo", "Arial Black", "Helvetica Neue", sans-serif;
   --mono:"Martian Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --row-h:40px; --ts:1; --ink1:#fff; --ink2:#0a0b0c; --ink3:#0a0b0c;
+  --row-h:40px; --pet-bg:#06205e; --pet-face:#e0482c; --pet-hi:#fff; --pet-shadow:#06164f; --pet-bub:#0b1a6e; --pet-line:#3a63ff; --pet-dim:#aebbff; --ts:1; --ink1:#fff; --ink2:#0a0b0c; --ink3:#0a0b0c;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -240,7 +240,7 @@ body.bare .island,body.bare .sbar,body.bare .homebar,body.bare .caption{display:
 .buddy{position:absolute;right:14px;bottom:26px;z-index:26;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
 body.bare .buddy{bottom:calc(14px + env(safe-area-inset-bottom, 0px))}
 .buddy>*{pointer-events:auto}
-.cat{position:relative;min-width:70px;width:auto;height:46px;border:0;padding:0 12px;cursor:pointer;background:var(--brick,#0b2a9a);background-size:auto;
+.cat{position:relative;min-width:70px;width:auto;height:46px;border:0;padding:0 12px;cursor:pointer;background:var(--brick,var(--pet-bg));background-size:auto;
   clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));display:grid;place-items:center;animation:bob 2.6s steps(2,end) infinite}
 .cat:focus-visible{outline:2px solid var(--acid);outline-offset:3px}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
@@ -248,17 +248,17 @@ body.bare .buddy{bottom:calc(14px + env(safe-area-inset-bottom, 0px))}
 .cbg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .cf .m{display:inline-block;width:.78em;text-align:center}
 .cf{position:relative;font-family:var(--mono);font-weight:500;font-size:15px;letter-spacing:-.03em;white-space:nowrap;color:#fff;
-  background:repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 2px, rgba(255,255,255,.6) 2px 3px), linear-gradient(180deg,#fff 12%,#e0482c 50%,#fff 88%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 0 #06164f)}
-.say{width:252px;background:#0b1a6e;color:#fff;border:1px solid #3a63ff;padding:16px 12px 12px;position:relative}
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 2px, rgba(255,255,255,.6) 2px 3px), linear-gradient(180deg,var(--pet-hi) 12%,var(--pet-face) 50%,var(--pet-hi) 88%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 0 var(--pet-shadow))}
+.say{width:252px;background:var(--pet-bub);color:#fff;border:1px solid var(--pet-line);padding:16px 12px 12px;position:relative}
 .say::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:var(--brick,#2f4bff)}
-.say::after{content:"";position:absolute;right:24px;bottom:-7px;width:12px;height:12px;background:#0b1a6e;border-right:1px solid #3a63ff;border-bottom:1px solid #3a63ff;transform:rotate(45deg)}
-.say-h{display:flex;justify-content:space-between;align-items:center;color:#aebbff;margin-bottom:6px}
-.say-h button{font:inherit;background:none;border:0;color:#aebbff;cursor:pointer;padding:2px 4px}
+.say::after{content:"";position:absolute;right:24px;bottom:-7px;width:12px;height:12px;background:var(--pet-bub);border-right:1px solid var(--pet-line);border-bottom:1px solid var(--pet-line);transform:rotate(45deg)}
+.say-h{display:flex;justify-content:space-between;align-items:center;color:var(--pet-dim);margin-bottom:6px}
+.say-h button{font:inherit;background:none;border:0;color:var(--pet-dim);cursor:pointer;padding:2px 4px}
 .say p{margin:0;font-size:calc(14px * var(--ts));line-height:1.45;overflow-wrap:anywhere}
 .say p em{font-style:normal;color:var(--acid)}
 .say-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.sb{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #3a63ff;background:transparent;color:#fff;padding:6px 9px;cursor:pointer;min-height:32px}
+.sb{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--pet-line);background:transparent;color:#fff;padding:6px 9px;cursor:pointer;min-height:32px}
 .sb.p{background:var(--acid);color:#000;border-color:var(--acid)}
 .sb:focus-visible{outline:2px solid var(--acid);outline-offset:1px}
 .row.ping .face{animation:slice .3s steps(1,end) 2}
@@ -499,8 +499,26 @@ const THEMES={
   mono:{name:'Grayscale',hi:'#f2f2ea',med:'#a3a6a0',lo:'#4a4d4f',loT:'#a3a6a0',acc:'#e2ff1f',
     hue:{1:[200,4,34,24],2:[80,4,64,48],3:[60,10,95,78]},ink:{1:'#fff',2:'#0a0b0c',3:'#0a0b0c'}}
 };
-const SPECIES={cat:{name:'Cat',face:'^•⩊•^'},dog:{name:'Dog',face:'U•ᴥ•U'},bunny:{name:'Bunny',face:'(\\•ㅅ•/)'},fox:{name:'Fox',face:'ʌ•ω•ʌ'}};
-const DEFAULTS={species:'cat',theme:'default',textSize:'m',density:'normal',sort:'level',serials:'on',enter:2,start:'capture',
+const SPECIES={
+  cat:{name:'Cat',face:'^•⩊•^',
+    pal:{bg:'#06205e',g:['#1c2bff','#4d86ff','#1a1fe6'],face:'#e0482c',hi:'#fff',shadow:'#06164f',bub:'#0b1a6e',line:'#3a63ff',dim:'#aebbff'},
+    // mid-high square chirps that slide down a little, meow-ish
+    voice:{type:'square',base:740,notes:[0,2,4,7,9],dur:.055,bend:-.25,vol:.045}},
+  dog:{name:'Dog',face:'U•ᴥ•U',
+    pal:{bg:'#3d0008',g:['#c4101e','#ff4d4d','#a3000f'],face:'#2a0005',hi:'#fff',shadow:'#2a0005',bub:'#4a0710',line:'#ff4d4d',dim:'#ffb3b3'},
+    // low buzzy barks with a quick drop, filtered so they don't rasp
+    voice:{type:'sawtooth',base:196,notes:[0,3,5,7],dur:.07,bend:-.4,vol:.07,lp:1500}},
+  bunny:{name:'Bunny',face:'(\\•ㅅ•/)',
+    pal:{bg:'#000',g:['#151515','#303030','#0c0c0c'],face:'#fff',hi:'#fff',shadow:'#000',bub:'#000',line:'#fff',dim:'#bdbdbd'},
+    // tiny high ticks that tip upward
+    voice:{type:'triangle',base:1400,notes:[0,4,7,12],dur:.032,bend:.15,vol:.09}},
+  fox:{name:'Fox',face:'ʌ•ω•ʌ',
+    pal:{bg:'#4a1800',g:['#e05600','#ff9a3a','#c24500'],face:'#2e0f00',hi:'#fff',shadow:'#2e0f00',bub:'#4a1800',line:'#ff8a2a',dim:'#ffc999'},
+    // yippy triangle blips that bend up
+    voice:{type:'triangle',base:560,notes:[0,3,7,10],dur:.06,bend:.45,vol:.09}}
+};
+const pet=()=>SPECIES[settings.species]||SPECIES.cat;
+const DEFAULTS={species:'cat',voice:'on',theme:'default',textSize:'m',density:'normal',sort:'level',serials:'on',enter:2,start:'capture',
   fx:'full',boot:'on',pet:'on',chat:'normal',sass:'on',side:'right',face:'^•⩊•^'};
 let settings=(()=>{try{return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){return Object.assign({},DEFAULTS)}})();
 const saveSettings=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(settings))}catch(e){}};
@@ -512,12 +530,15 @@ function applyTheme(){
   Object.assign(HUE,{1:t.hue[1],2:t.hue[2],3:t.hue[3]});Object.assign(INK,{1:t.ink[1],2:t.ink[2],3:t.ink[3]});
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#0a0b0c');
 }
+let lastPet=null;
 function applySettings(){
   const d=document.documentElement;
   applyTheme();
   d.style.setProperty('--ts',TS[settings.textSize]||1);d.style.setProperty('--row-h',(RH[settings.density]||40)+'px');
   d.dataset.serials=settings.serials;d.dataset.pet=settings.pet;d.dataset.petSide=settings.side;d.dataset.fx=settings.fx;
   RM=REDUCE||settings.fx==='off';SUB=settings.fx==='subtle';
+  const P=pet().pal;[['bg','bg'],['face','face'],['hi','hi'],['shadow','shadow'],['bub','bub'],['line','line'],['dim','dim']].forEach(([k,v])=>d.style.setProperty('--pet-'+k,P[v]));
+  if(lastPet!==settings.species){lastPet=settings.species;makeBrick();if(window.petDraw)petDraw()}
   parseFace();setFace(null,null);
   const sw=document.getElementById('sayWho');if(sw)sw.textContent=settings.face;
   const cb=document.getElementById('cat');if(cb)cb.setAttribute('aria-label',`${(SPECIES[settings.species]||SPECIES.cat).name}: tap for a suggestion`);
@@ -884,16 +905,34 @@ const escC=c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]||c);
 function faceHTML(eye,mouth){return FC.map((c,i)=>i===FM?`<span class="m">${escC(mouth||c)}</span>`:escC(eye&&FE.includes(i)?eye:c)).join('')}
 function setFace(eye,mouth){face.innerHTML=faceHTML(eye,mouth)}
 const MOUTHS=['o','⩊','O','ᴗ','o','⩊'];
+/* voice: synthesized blips, one per few letters, pitched per animal */
+let AC=null,lastBlip=0;
+function audio(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C()}if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{if(settings.voice!=='off')audio()},{capture:true}));
+function blip(force){
+  if(settings.voice==='off'||settings.pet==='off')return;const a=AC;if(!a||a.state!=='running')return;
+  const now=performance.now();if(!force&&now-lastBlip<70)return;lastBlip=now;
+  const v=pet().voice,t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  const f=v.base*Math.pow(2,v.notes[Math.random()*v.notes.length|0]/12);
+  o.type=v.type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*Math.pow(2,v.bend),t+v.dur);
+  const vol=v.vol*(settings.voice==='quiet'?.4:1);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+v.dur);
+  let n=o;if(v.lp){const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=v.lp;o.connect(lp);n=lp}
+  n.connect(g);g.connect(a.destination);o.start(t);o.stop(t+v.dur+.03);
+}
+function sample(k=5){audio();for(let i=0;i<k;i++)setTimeout(()=>blip(true),i*85)}
 function talk(el){
   stopTalk();
   // collect text nodes, blank them, then type them back in while the mouth flaps
   const nodes=[],w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())nodes.push([n,n.nodeValue]);
   const total=nodes.reduce((a,[,t])=>a+t.length,0);
-  if(RM||!total){setFace(null,'o');setTimeout(()=>setFace(null,null),300);return}
+  if(RM||!total){setFace(null,'o');sample(3);setTimeout(()=>setFace(null,null),300);return}
+  const full=nodes.map(([,t])=>t).join('');
   nodes.forEach(([nd])=>nd.nodeValue='');
   talking=true;let shown=0;const per=Math.max(12,Math.min(30,1400/total));
   talkT=setInterval(()=>{shown=Math.min(total,shown+1);let left=shown;
     nodes.forEach(([nd,t])=>{const k=Math.max(0,Math.min(t.length,left));nd.nodeValue=t.slice(0,k);left-=t.length});
+    const ch=full[shown-1];if(ch&&/[A-Za-z0-9]/.test(ch))blip();
     if(shown>=total)stopTalk()},per);
   let f=0;mouthT=setInterval(()=>{f++;const m=f%2?MOUTHS[(Math.random()*MOUTHS.length)|0]:null;setFace(m==='O'?'°':null,m)},95);
   fx(cat,'talk',500);
@@ -912,23 +951,24 @@ function stopTalk(){clearInterval(talkT);clearInterval(mouthT);talkT=mouthT=null
   for(let x=0;x<W;x+=CW){const blocks=[];let y=0;while(y<L){const h=7+Math.random()*14;if(Math.random()<.72)blocks.push([y,h]);y+=h+(Math.random()<.3?5:0)}
     cols.push({x,blocks,ph:Math.random()*6.28,sp:.4+Math.random()*.6,amp:1.5+Math.random()*2,base:Math.random()*L})}
   function draw(t){
-    g.fillStyle='#06205e';g.fillRect(0,0,W,H);
+    const P=pet().pal;g.fillStyle=P.bg;g.fillRect(0,0,W,H);
     cols.forEach(c=>{const off=c.base+Math.sin(t*c.sp+c.ph)*c.amp;
-      const gr=g.createLinearGradient(c.x,0,c.x+CW,0);gr.addColorStop(0,'#1c2bff');gr.addColorStop(.55,'#4d86ff');gr.addColorStop(1,'#1a1fe6');g.fillStyle=gr;
+      const gr=g.createLinearGradient(c.x,0,c.x+CW,0);gr.addColorStop(0,P.g[0]);gr.addColorStop(.55,P.g[1]);gr.addColorStop(1,P.g[2]);g.fillStyle=gr;
       c.blocks.forEach(([y,h])=>{for(const k of [-L,0,L]){const yy=((y+off)%L)+k-20;if(yy+h>0&&yy<H)g.fillRect(c.x,Math.round(yy),CW,Math.round(h))}})});
   }
+  let lastT=0;window.petDraw=()=>draw(lastT);
   draw(0);if(RM)return;
-  let last=0;(function loop(now){if(!document.hidden&&now-last>70){draw(now/1000);last=now}requestAnimationFrame(loop)})(0);
+  let last=0;(function loop(now){if(!document.hidden&&now-last>70){lastT=now/1000;draw(lastT);last=now}requestAnimationFrame(loop)})(0);
 })();
 
 /* brick texture, after the attached rabbit piece: columns of stacked blocks with cylindrical shading */
-(function brick(){try{
-  const c=document.createElement('canvas'),W=96,H=72;c.width=W;c.height=H;const g=c.getContext('2d');
-  g.fillStyle='#06205e';g.fillRect(0,0,W,H);
+function makeBrick(){try{
+  const P=pet().pal,c=document.createElement('canvas'),W=96,H=72;c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle=P.bg;g.fillRect(0,0,W,H);
   for(let x=0;x<W;x+=12){let y=-Math.random()*20;while(y<H){const h=8+Math.random()*16;if(Math.random()<.72){
-    const gr=g.createLinearGradient(x,0,x+12,0);gr.addColorStop(0,'#1c2bff');gr.addColorStop(.55,'#4d86ff');gr.addColorStop(1,'#1a1fe6');g.fillStyle=gr;g.fillRect(x,y,12,h)}
+    const gr=g.createLinearGradient(x,0,x+12,0);gr.addColorStop(0,P.g[0]);gr.addColorStop(.55,P.g[1]);gr.addColorStop(1,P.g[2]);g.fillStyle=gr;g.fillRect(x,y,12,h)}
     y+=h+(Math.random()<.3?6:0)}}
-  document.documentElement.style.setProperty('--brick',`url(${c.toDataURL()})`)}catch(e){}})();
+  document.documentElement.style.setProperty('--brick',`url(${c.toDataURL()})`)}catch(e){}}
 
 /* ---------- boot ---------- */
 (function boot(){
@@ -974,9 +1014,10 @@ function drawSettings(){
     ${REDUCE?'<p class="micro" style="margin:0">Reduce Motion is on for this device, so effects stay off.</p>':''}
   </section>
   <section class="sgroup"><h3>Companion</h3>
-    <div class="preview"><span class="cat" aria-hidden="true" style="background:var(--brick,#0b2a9a)"><span class="cf" id="facePrev"></span></span><span class="micro">Tap the real one in the corner for a suggestion</span></div>
+    <div class="preview"><span class="cat" aria-hidden="true" style="background:var(--brick,var(--pet-bg))"><span class="cf" id="facePrev"></span></span><span class="micro">Tap the real one in the corner for a suggestion</span></div>
     <div class="srow"><div class="lab micro"><span>Companion</span></div>${SEG('pet',[['on','On'],['off','Off']])}</div>
     <div class="srow"><div class="lab micro"><span>Animal</span></div><div class="seg species" role="group">${Object.entries(SPECIES).map(([k,v])=>`<button data-sp="${k}" aria-pressed="${settings.species===k}"><span class="spf"></span><span>${v.name}</span></button>`).join('')}</div></div>
+    <div class="srow"><div class="lab micro"><span>Voice</span><span>Silent switch mutes it</span></div>${SEG('voice',[['on','On'],['quiet','Quiet'],['off','Off']])}</div>
     <div class="srow"><div class="lab micro"><span>Speaks up on its own</span></div>${SEG('chat',[['quiet','Never'],['normal','Sometimes'],['chatty','Often']])}</div>
     <div class="srow"><div class="lab micro"><span>When tapped</span></div>${SEG('sass',[['on','Tasks + sass'],['off','Tasks only']])}</div>
     <div class="srow"><div class="lab micro"><span>Corner</span></div>${SEG('side',[['left','Left'],['right','Right']])}</div>
@@ -991,14 +1032,14 @@ function drawSettings(){
   $('#setsBody').querySelectorAll('[data-sp]').forEach(b=>{b.querySelector('.spf').textContent=SPECIES[b.dataset.sp].face;b.onclick=()=>{
     settings.species=b.dataset.sp;settings.face=SPECIES[b.dataset.sp].face;saveSettings();applySettings();
     $('#setsBody').querySelectorAll('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#faceIn').value=settings.face;
-    $('#facePrev').innerHTML=faceHTML(null,null);glitch($('#facePrev'));glitch(cat);jolt(b)}});
+    $('#facePrev').innerHTML=faceHTML(null,null);glitch($('#facePrev'));glitch(cat);jolt(b);sample()}});
   const fi=$('#faceIn');fi.value=settings.face;$('#facePrev').innerHTML=faceHTML(null,null);
   fi.addEventListener('input',()=>{settings.face=fi.value.trim()||SPECIES[settings.species].face;saveSettings();applySettings();$('#facePrev').innerHTML=faceHTML(null,null)});
   $('#faceReset').onclick=()=>{settings.face=SPECIES[settings.species].face;fi.value=settings.face;saveSettings();applySettings();$('#facePrev').innerHTML=faceHTML(null,null);glitch($('#facePrev'))};
   $('#setsBody').querySelectorAll('.seg button[data-k]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.k;let v=b.dataset.v;if(k==='enter')v=+v;settings[k]=v;saveSettings();
     b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));jolt(b);
-    applySettings();if(k==='sort')syncSort();render();if(k==='pet'&&v==='on')glitch(cat)});
+    applySettings();if(k==='voice'&&v!=='off')sample();if(k==='sort')syncSort();render();if(k==='pet'&&v==='on')glitch(cat)});
   $('#setsBody').querySelectorAll('.th').forEach(b=>b.onclick=()=>{settings.theme=b.dataset.theme;saveSettings();applySettings();
     $('#setsBody').querySelectorAll('.th').forEach(x=>x.setAttribute('aria-pressed',x===b));glitch(b);render()});
   $('#sImport').onclick=()=>{closeSets();setTimeout(openSheet,120)};

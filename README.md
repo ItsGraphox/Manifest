@@ -46,7 +46,7 @@ Tap the gear at the top right. Your settings stay on the device.
 - **Display:** text size (S–XL), row height, and whether rows show serial numbers.
 - **List:** order (by level, newest first, or oldest first, which matches the order things were added), which screen the app opens to, and which level the Enter key saves as.
 - **Motion:** glitch effects (Full, Subtle, Off) and the boot sequence.
-- **Companion:** on/off, which animal (Cat `^•⩊•^`, Dog `U•ᴥ•U`, Bunny `(\•ㅅ•/)`, Fox `ʌ•ω•ʌ`), how often it speaks up on its own, whether taps can get sass or only tasks, which corner it sits in, and its face. Type any face; if it has a mouth character like `⩊` `ω` `ᴥ` `‿` and dot eyes `•`, those animate.
+- **Companion:** on/off, which animal (Cat `^•⩊•^`, Dog `U•ᴥ•U`, Bunny `(\•ㅅ•/)`, Fox `ʌ•ω•ʌ`), each with its own colors and voice; voice volume (On, Quiet, Off — the silent switch also mutes it), how often it speaks up on its own, whether taps can get sass or only tasks, which corner it sits in, and its face. Type any face; if it has a mouth character like `⩊` `ω` `ᴥ` `‿` and dot eyes `•`, those animate.
 - **Data:** import, copy everything as text, clear completed items, or erase everything (asks twice, and Undo is offered).
 
 The **Sort** button next to the search field on the list cycles Level → Newest → Oldest.
