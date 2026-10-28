@@ -1316,7 +1316,7 @@ syncSort();
    Change tracking is automatic: every save() compares items with the last
    snapshot, stamps what changed, and leaves a deletion marker for removed
    items so deletions reach your other devices too. */
-const SYNC_URL_DEFAULT='';  // set after the Worker is deployed
+const SYNC_URL_DEFAULT='https://manifest-sync.graphox.workers.dev';
 const SYKEY='manifest.sync',TOMBKEY='manifest.tomb',DIRTYKEY='manifest.dirty';
 const jget=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -1523,7 +1523,7 @@ function redrawSets(){const sc=$('.sets-scroll').scrollTop;drawSettings();$('.se
 const _drawSettings=drawSettings;drawSettings=function(){_drawSettings();bindSync()};
 applySettings();save();sync();render();go(settings.start==='list'?1:0,false);startSync();setSync(SY?'ok':'off');
 /* build stamp: bump BUILD (and VERSION in sw.js) with every release */
-const BUILD={v:10,at:'2026-10-28T16:30:00-04:00'};
+const BUILD={v:11,at:'2026-10-28T19:55:00-04:00'};
 (function stamp(){const b=$('#build'),d=new Date(BUILD.at);
   const when=d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   b.textContent=`v${BUILD.v} · updated ${when}`;b.title=`Manifest version ${BUILD.v}, released ${d.toLocaleString()}`;
