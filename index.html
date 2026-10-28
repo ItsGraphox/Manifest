@@ -556,6 +556,26 @@ html[data-ui="current"][data-mode="light"] .tally .boxes i.on{outline-color:#0d0
 html[data-ui="current"][data-mode="light"] .tab[aria-selected="true"]{border-top-color:#0d0e10}
 html[data-ui="current"][data-mode="light"] body.bare .screen::before{content:"";position:absolute;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#0d0e10;z-index:50}
 
+
+/* ---------- sync ---------- */
+.tabgear{position:relative}
+.tabgear[data-sync]::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%}
+.tabgear[data-sync="ok"]::after{background:#3ad16b}
+.tabgear[data-sync="wait"]::after,.tabgear[data-sync="busy"]::after{background:#ffb020}
+.tabgear[data-sync="err"]::after{background:#ff3b5c}
+.tabgear[data-sync="off"]::after{display:none}
+.syform{display:flex;flex-direction:column;gap:8px}
+.syform input{font-family:var(--mono);font-size:16px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);padding:10px 12px;outline:0;min-height:44px;box-sizing:border-box}
+.syform input:focus{border-color:var(--acc-t)}
+.syform .ghostb.arm{background:var(--mag);color:#000;border-color:var(--mag)}
+.sycode{font-family:var(--mono);font-size:20px;letter-spacing:.06em;color:var(--ink);user-select:all;-webkit-user-select:all;padding:10px 12px;background:var(--panel);border:1px solid var(--rule)}
+.sycode.masked{color:var(--dim)}
+.syerr{margin:0;color:var(--mag);font-size:14px}
+html[data-ui="current"][data-mode="light"] .syerr{color:#b0004a}
+#syncStatus{color:var(--ink);font-weight:500}
+html[data-ui="b"] .syform input,html[data-ui="b"] .sycode{border:0;border-radius:12px;font-family:"Geist",sans-serif}
+html[data-ui="b"] .sycode{font-family:"Doto","Courier New",monospace;font-weight:800}
+
 /* standalone / home screen */
 html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 button,.face,.pad{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -714,7 +734,7 @@ const pet=()=>SPECIES[settings.species]||SPECIES.cat;
 const DEFAULTS={ui:'current',mode:'dark',species:'cat',voice:'on',theme:'default',textSize:'m',density:'normal',sort:'level',serials:'on',enter:2,start:'capture',
   fx:'full',boot:'on',pet:'on',chat:'normal',sass:'on',side:'right',face:'^•⩊•^'};
 let settings=(()=>{try{return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){return Object.assign({},DEFAULTS)}})();
-const saveSettings=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(settings))}catch(e){}};
+const saveSettings=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(settings))}catch(e){}if(window.__onSettingsSaved)window.__onSettingsSaved()};
 const TS={s:.9,m:1,l:1.15,xl:1.3}, RH={compact:32,normal:40,large:52};
 const SKIN_B={hi:'#ff5a1f',med:'#f7f6f2',lo:'#2a2a29',loT:'#5f5e59',acc:'#ff5a1f',
   hue:{1:[60,2,22,30],2:[48,20,95,88],3:[16,100,56,46]},ink:{1:'#f0efea',2:'#1a1a19',3:'#1a1a19'}};
@@ -762,7 +782,7 @@ let items, seq=0;
   items.slice().sort((a,b)=>a.created-b.created).forEach(i=>{if(!i.n)i.n=++seq});
 })();
 let filter='all',q='',editing=null,page=0,rendering=false,bulk=null,fresh=new Set(),stagger=false;
-const save=()=>{set(KEY,JSON.stringify(items));set(SEQ,String(seq))};
+const save=()=>{if(window.__onSave)window.__onSave();set(KEY,JSON.stringify(items));set(SEQ,String(seq))};
 
 /* ---------- fx ---------- */
 function fx(el,cls,ms){if(RM||!el)return;if(SUB&&(cls==='shift'||cls==='rgbonly'))return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms)}
@@ -1215,6 +1235,7 @@ const SEG=(key,opts)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<butto
 function drawSettings(){
   const done=items.filter(i=>i.done).length;
   $('#setsBody').innerHTML=`
+  ${syncSection()}
   <section class="sgroup"><h3>Interface</h3>
     <div class="srow"><div class="lab micro"><span>Layout and type</span><span>Your items and settings carry over</span></div>${SEG('ui',[['current','Original'],['a','Color field'],['b','Hardware']])}</div>
   </section>
@@ -1288,7 +1309,219 @@ $('#sortBtn').onclick=()=>{settings.sort=SORTN[settings.sort]||'level';saveSetti
   scramble($('#sortBtn b'),SORTL[settings.sort],200)};
 syncSort();
 
-applySettings();save();sync();render();go(settings.start==='list'?1:0,false);
+/* ---------- sync ----------
+   Lists (and settings) sync through a small Cloudflare Worker. Everything is
+   encrypted on this device with a key made from your passphrase before it
+   leaves; the server stores scrambled records and timestamps only.
+   Change tracking is automatic: every save() compares items with the last
+   snapshot, stamps what changed, and leaves a deletion marker for removed
+   items so deletions reach your other devices too. */
+const SYNC_URL_DEFAULT='';  // set after the Worker is deployed
+const SYKEY='manifest.sync',TOMBKEY='manifest.tomb',DIRTYKEY='manifest.dirty';
+const jget=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const syncUrl=()=>(get('manifest.syncUrl')||SYNC_URL_DEFAULT).replace(/\/+$/,'');
+let SY=jget(SYKEY,null);            // {code, vault, jwk, lastSeq, settingsU, settingsDirty}
+let TOMB=jget(TOMBKEY,{});          // id -> time deleted
+let DIRTY=new Set(jget(DIRTYKEY,[]));
+let SNAP=new Map(), syKey=null, syState={s:'off',msg:''}, applying=false;
+const FIELDS=it=>JSON.stringify([it.text,it.level,!!it.done,it.doneAt||0,it.created||0,it.n||0,it.src||'']);
+function snapAll(){SNAP=new Map(items.map(i=>[i.id,FIELDS(i)]))}
+snapAll();
+function persistSync(){jset(TOMBKEY,TOMB);jset(DIRTYKEY,[...DIRTY]);if(SY)jset(SYKEY,SY)}
+// called by save(): stamp what changed since the last snapshot
+function trackChanges(){
+  if(applying)return;const now=Date.now(),seen=new Set();let touched=false;
+  for(const it of items){seen.add(it.id);const f=FIELDS(it);
+    if(SNAP.get(it.id)!==f){it.u=now;SNAP.set(it.id,f);DIRTY.add(it.id);if(TOMB[it.id])delete TOMB[it.id];touched=true}}
+  for(const id of [...SNAP.keys()])if(!seen.has(id)){SNAP.delete(id);TOMB[id]=now;DIRTY.add(id);touched=true}
+  // forget deletion markers after six months
+  const old=now-180*864e5;for(const id in TOMB)if(TOMB[id]<old&&!DIRTY.has(id))delete TOMB[id];
+  if(touched){persistSync();if(SY)queuePush()}
+}
+window.__onSave=trackChanges;
+window.__onSettingsSaved=()=>{if(applying||!SY)return;SY.settingsU=Date.now();SY.settingsDirty=true;persistSync();queuePush()};
+
+/* crypto */
+const TE=new TextEncoder(),TD=new TextDecoder();
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s)}
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const CROCK='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+function newCode(){const r=crypto.getRandomValues(new Uint8Array(20));return [...r].map(x=>CROCK[x&31]).join('')}
+function normCode(s){return String(s||'').toUpperCase().replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V').replace(/[^0-9A-Z]/g,'')}
+const showCode=c=>c.match(/.{1,4}/g).join('-');
+async function vaultOf(code){return hex(await crypto.subtle.digest('SHA-256',TE.encode('manifest-vault:'+code)))}
+async function deriveKey(code,pass){
+  const salt=await crypto.subtle.digest('SHA-256',TE.encode('manifest-salt:'+code));
+  const base=await crypto.subtle.importKey('raw',TE.encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])}
+async function seal(obj){const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},syKey,TE.encode(JSON.stringify(obj))));
+  const out=new Uint8Array(12+ct.length);out.set(iv);out.set(ct,12);return b64(out)}
+async function unseal(s,key=syKey){const b=unb64(s);return JSON.parse(TD.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},key,b.slice(12))))}
+async function loadKey(){if(SY&&SY.jwk&&!syKey)syKey=await crypto.subtle.importKey('jwk',SY.jwk,{name:'AES-GCM'},false,['encrypt','decrypt'])}
+const CHECK='manifest-ok';
+
+/* network */
+async function api(path,opts){const r=await fetch(`${syncUrl()}/v1/${SY.vault}/${path}`,opts);if(!r.ok)throw new Error('server '+r.status);return r.json()}
+const pullFrom=(vault,since)=>fetch(`${syncUrl()}/v1/${vault}/pull?since=${since}`).then(r=>{if(!r.ok)throw new Error('server '+r.status);return r.json()});
+
+function setSync(s,msg=''){syState={s,msg,at:Date.now()};const g=$('#setBtn');if(g){g.dataset.sync=SY?s:'off'}
+  const el=document.getElementById('syncStatus');if(el)el.textContent=syncLabel()}
+function syncLabel(){if(!SY)return'Off';const n=DIRTY.size+(SY.settingsDirty?1:0);
+  if(syState.s==='err')return syState.msg||'Can’t reach the sync server';
+  if(!navigator.onLine)return`Offline${n?` · ${n} change${n>1?'s':''} waiting`:''}`;
+  if(syState.s==='busy')return'Syncing…';
+  if(n)return`${n} change${n>1?'s':''} waiting`;
+  return SY.lastAt?`Synced ${ageShort(SY.lastAt)==='now'?'just now':ageShort(SY.lastAt)+' ago'}`:'Synced'}
+
+let pushT=null,pushing=false,pullQueued=false,pulling=false;
+function queuePush(){clearTimeout(pushT);pushT=setTimeout(pushNow,500);setSync(syState.s==='err'?'err':'wait')}
+async function pushNow(){
+  if(!SY||!syKey||pushing||!navigator.onLine)return;pushing=true;setSync('busy');
+  try{
+    const ids=[...DIRTY],recs=[],sent=new Map();
+    for(const id of ids){const it=items.find(i=>i.id===id);
+      if(it){const {id:_,u,...p}=it;recs.push({id,t:it.u||Date.now(),d:0,c:await seal(p)});sent.set(id,it.u)}
+      else if(TOMB[id]){recs.push({id,t:TOMB[id],d:1,c:await seal({})});sent.set(id,TOMB[id])}
+      else DIRTY.delete(id)}
+    let sentSettings=null;
+    if(SY.settingsDirty){sentSettings=SY.settingsU;recs.push({id:'__settings',t:SY.settingsU,d:0,c:await seal(settings)})}
+    if(recs.length){
+      for(let i=0;i<recs.length;i+=500)await api('push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records:recs.slice(i,i+500)})});
+      for(const [id,t] of sent){const it=items.find(i=>i.id===id);const cur=it?it.u:TOMB[id];if(cur===t)DIRTY.delete(id)}
+      if(sentSettings!==null&&SY.settingsU===sentSettings)SY.settingsDirty=false;
+    }
+    SY.lastAt=Date.now();persistSync();setSync('ok');
+  }catch(e){setSync('err',navigator.onLine?'Can’t reach the sync server':'')}
+  finally{pushing=false;if(DIRTY.size||SY&&SY.settingsDirty)if(syState.s!=='err')queuePush()}
+}
+// apply decrypted remote records; returns true if anything changed locally
+async function applyRemote(records,{force=false}={}){
+  let changed=false,settingsChanged=false;applying=true;
+  try{
+    for(const r of records){
+      if(r.id==='__check')continue;
+      if(r.id==='__settings'){if(force||!SY.settingsDirty&&r.t>(SY.settingsU||0)){const p=await unseal(r.c);settings=Object.assign({},DEFAULTS,p);SY.settingsU=r.t;SY.settingsDirty=false;saveSettings();settingsChanged=true}continue}
+      const it=items.find(i=>i.id===r.id);const localT=it?(it.u||0):(TOMB[r.id]||0);
+      if(!force&&(r.t<=localT))continue;
+      if(r.d){if(it){items.splice(items.indexOf(it),1);changed=true}TOMB[r.id]=r.t;SNAP.delete(r.id);DIRTY.delete(r.id);continue}
+      const p=await unseal(r.c);const next={...p,id:r.id,u:r.t};
+      if(it)Object.assign(it,next);else items.push(next);
+      delete TOMB[r.id];SNAP.set(r.id,FIELDS(next));DIRTY.delete(r.id);changed=true;
+      if(next.n&&next.n>seq)seq=next.n;
+    }
+    if(changed){set(KEY,JSON.stringify(items));set(SEQ,String(seq))}
+    persistSync();
+  }finally{applying=false}
+  if(settingsChanged){applySettings();if(typeof syncSort==='function')syncSort()}
+  if(changed||settingsChanged){render();if(!sets.hidden)drawSettings()}
+  return changed;
+}
+async function pullNow(){
+  if(!SY||!syKey||!navigator.onLine)return;if(pulling){pullQueued=true;return}pulling=true;
+  try{const res=await api(`pull?since=${SY.lastSeq||0}`,{});await applyRemote(res.records);SY.lastSeq=res.seq;SY.lastAt=Date.now();persistSync();if(syState.s!=='wait')setSync('ok')}
+  catch(e){setSync('err',e.name==='OperationError'?'Wrong passphrase for this list':'Can’t reach the sync server')}
+  finally{pulling=false;if(pullQueued){pullQueued=false;pullNow()}}
+}
+/* live updates */
+let ws=null,wsTry=0,wsT=null;
+function connectLive(){
+  if(!SY||ws||!navigator.onLine||document.hidden)return;
+  try{ws=new WebSocket(`${syncUrl().replace(/^http/,'ws')}/v1/${SY.vault}/ws`)}catch(e){ws=null;return}
+  ws.onopen=()=>{wsTry=0};
+  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}if((m.type==='changed'||m.type==='hello')&&m.seq>(SY.lastSeq||0))pullNow()};
+  ws.onclose=()=>{ws=null;if(!SY)return;clearTimeout(wsT);wsT=setTimeout(connectLive,Math.min(30000,1000*2**wsTry++))};
+  ws.onerror=()=>{try{ws&&ws.close()}catch(e){}};
+}
+function dropLive(){clearTimeout(wsT);if(ws){ws.onclose=null;try{ws.close()}catch(e){}ws=null}}
+async function startSync(){if(!SY||!syncUrl())return;await loadKey();connectLive();await pullNow();if(DIRTY.size||SY.settingsDirty)pushNow();setSync(syState.s)}
+document.addEventListener('visibilitychange',()=>{if(!SY)return;if(document.hidden){dropLive()}else{connectLive();pullNow();pushNow()}});
+addEventListener('online',()=>{if(SY){connectLive();pullNow();pushNow()}});
+addEventListener('offline',()=>setSync(syState.s));
+setInterval(()=>{if(SY&&!document.hidden){if(!ws)pullNow();setSync(syState.s)}},60000);
+
+/* linking */
+async function createSync(pass){
+  const code=newCode(),vault=await vaultOf(code),key=await deriveKey(code,pass);
+  syKey=key;SY={code,vault,jwk:await crypto.subtle.exportKey('jwk',key),lastSeq:0,settingsU:Date.now(),settingsDirty:true};
+  TOMB={};DIRTY=new Set(items.map(i=>i.id));items.forEach(i=>{if(!i.u)i.u=Date.now()});snapAll();
+  await api('push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records:[{id:'__check',t:1,d:0,c:await seal({v:CHECK})}]})});
+  persistSync();set(KEY,JSON.stringify(items));await pushNow();connectLive();return code;
+}
+// step 1 of joining: check the code and passphrase, report what's there
+async function probeJoin(codeIn,pass){
+  const code=normCode(codeIn);if(code.length!==20)throw new Error('That code should be 20 letters and numbers.');
+  const vault=await vaultOf(code);const res=await pullFrom(vault,0);
+  const chk=res.records.find(r=>r.id==='__check');if(!chk)throw new Error('No synced list uses that code.');
+  const key=await deriveKey(code,pass);
+  try{const v=await unseal(chk.c,key);if(v.v!==CHECK)throw 0}catch(e){throw new Error('That passphrase doesn’t match this list.')}
+  return {code,vault,key,res,count:res.records.filter(r=>r.id!=='__check'&&r.id!=='__settings'&&!r.d).length};
+}
+async function finishJoin(p,mode){
+  syKey=p.key;SY={code:p.code,vault:p.vault,jwk:await crypto.subtle.exportKey('jwk',p.key),lastSeq:0,settingsU:0,settingsDirty:false};
+  const local=items.slice();
+  applying=true;items=[];TOMB={};DIRTY=new Set();snapAll();applying=false;
+  await applyRemote(p.res.records,{force:true});SY.lastSeq=p.res.seq;
+  if(mode==='merge'){const have=new Set(items.map(i=>i.text.trim().toLowerCase()));
+    for(const it of local){if(have.has(it.text.trim().toLowerCase()))continue;seq++;items.push({...it,n:it.n&&!items.some(x=>x.n===it.n)?it.n:seq})}
+    save()}
+  if(!p.res.records.some(r=>r.id==='__settings')){SY.settingsU=Date.now();SY.settingsDirty=true}
+  persistSync();render();await pushNow();connectLive();
+}
+function stopSync(){dropLive();SY=null;syKey=null;try{localStorage.removeItem(SYKEY)}catch(e){}DIRTY=new Set();TOMB={};persistSync();setSync('off')}
+
+/* settings section */
+let syForm=null,syJoin=null,syErr='',syShowCode=false,syJustMade=false;
+function syncSection(){
+  if(!syncUrl())return`<section class="sgroup"><h3>Sync</h3><p class="micro" style="margin:0">Sync isn’t connected to a server yet.</p></section>`;
+  if(SY){const code=showCode(SY.code);return`<section class="sgroup"><h3>Sync</h3>
+    <div class="srow"><div class="lab micro"><span>Status</span><b id="syncStatus">${syncLabel()}</b></div></div>
+    ${syJustMade?`<p class="micro" style="margin:0">Sync is on. To add another device, open Manifest there, go to Settings → Sync → Join, and enter this code and your passphrase.</p>`:''}
+    <div class="srow"><div class="lab micro"><span>Sync code</span></div>
+      <div class="sycode${syShowCode||syJustMade?'':' masked'}" id="syCode">${syShowCode||syJustMade?code:'••••-••••-••••-••••-••••'}</div></div>
+    <div class="sact"><button class="ghostb" id="syShow">${syShowCode||syJustMade?'Hide code':'Show code'}</button><button class="ghostb" id="syCopy">Copy code</button><button class="ghostb" id="syNow">Sync now</button></div>
+    <div class="sact"><button class="ghostb del" id="syStop">Stop syncing on this device</button></div></section>`}
+  const f=syForm==='create'?`<div class="syform"><p class="micro" style="margin:0">Choose a passphrase. Your list is encrypted with it before it leaves this device. Write it down: without it, the synced copy can’t be read by anyone.</p>
+      <label class="micro" for="syP1">Passphrase</label><input id="syP1" type="password" autocomplete="new-password" minlength="8">
+      <label class="micro" for="syP2">Type it again</label><input id="syP2" type="password" autocomplete="new-password">
+      <button class="bigb" id="syGo">Turn on sync</button></div>`
+    :syForm==='join'&&!syJoin?`<div class="syform"><label class="micro" for="syC">Sync code</label><input id="syC" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX">
+      <label class="micro" for="syP">Passphrase</label><input id="syP" type="password" autocomplete="current-password">
+      <button class="bigb" id="syGo">Join</button></div>`
+    :syJoin?`<div class="syform"><p class="micro" style="margin:0">Found the synced list (${syJoin.count} item${syJoin.count===1?'':'s'}). This device has ${items.length} item${items.length===1?'':'s'}.</p>
+      <button class="bigb" id="syMerge">Merge this device’s items in</button><button class="ghostb" id="syReplace">Replace with the synced list</button></div>`:'';
+  return`<section class="sgroup"><h3>Sync</h3>
+    <p class="micro" style="margin:0">Keep your list and settings the same on your phone and computers. Changes show up within seconds.</p>
+    <div class="seg" role="group"><button data-syf="create" aria-pressed="${syForm==='create'}">Turn on sync</button><button data-syf="join" aria-pressed="${syForm==='join'}">Join with a code</button></div>
+    ${f}${syErr?`<p class="syerr" role="alert">${esc(syErr)}</p>`:''}</section>`;
+}
+function bindSync(){
+  const body=$('#setsBody'),q=s=>body.querySelector(s);
+  body.querySelectorAll('[data-syf]').forEach(b=>b.onclick=()=>{syForm=syForm===b.dataset.syf?null:b.dataset.syf;syJoin=null;syErr='';redrawSets();setTimeout(()=>{const i=q('#syP1')||q('#syC');if(i)i.focus()},40)});
+  const busy=(b,t)=>{b.disabled=true;b.textContent=t};
+  const go=q('#syGo');
+  if(go&&syForm==='create')go.onclick=async()=>{const a=q('#syP1').value,b=q('#syP2').value;
+    if(a.length<8){syErr='Use at least 8 characters.';redrawSets();return}if(a!==b){syErr='The two passphrases don’t match.';redrawSets();return}
+    busy(go,'Encrypting…');try{await createSync(a);syForm=null;syErr='';syJustMade=true;toast('Sync is on');drawSettings();$('.sets-scroll').scrollTop=0;return}catch(e){SY=null;syKey=null;syErr='Couldn’t reach the sync server. Check your connection and try again.'}redrawSets()};
+  if(go&&syForm==='join')go.onclick=async()=>{busy(go,'Checking…');
+    try{syJoin=await probeJoin(q('#syC').value,q('#syP').value);syErr='';if(!items.length){await finishJoin(syJoin,'replace');syJoin=null;syForm=null;toast('Joined · synced')}}
+    catch(e){syErr=e.message&&!/fetch|network|server/i.test(e.message)?e.message:'Couldn’t reach the sync server. Check your connection and try again.'}redrawSets()};
+  const m=q('#syMerge'),r=q('#syReplace');
+  if(m)m.onclick=async()=>{busy(m,'Merging…');await finishJoin(syJoin,'merge');syJoin=null;syForm=null;toast('Joined · merged');drawSettings();$('.sets-scroll').scrollTop=0};
+  if(r)r.onclick=async()=>{if(!r.classList.contains('arm')){r.classList.add('arm');r.textContent=`Tap again to replace ${items.length} items`;return}
+    busy(r,'Replacing…');await finishJoin(syJoin,'replace');syJoin=null;syForm=null;toast('Joined · synced');drawSettings();$('.sets-scroll').scrollTop=0};
+  const sh=q('#syShow');if(sh)sh.onclick=()=>{syShowCode=!(syShowCode||syJustMade);syJustMade=false;redrawSets()};
+  const cp=q('#syCopy');if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(showCode(SY.code));toast('Code copied')}catch(e){syShowCode=true;redrawSets()}};
+  const nw=q('#syNow');if(nw)nw.onclick=()=>{jolt(nw);pullNow();pushNow()};
+  const st=q('#syStop');if(st)st.onclick=()=>{if(!st.classList.contains('arm')){st.classList.add('arm');st.textContent='Tap again to stop syncing here';return}
+    stopSync();syShowCode=false;syJustMade=false;toast('Sync stopped on this device');redrawSets()};
+}
+function redrawSets(){const sc=$('.sets-scroll').scrollTop;drawSettings();$('.sets-scroll').scrollTop=sc}
+
+const _drawSettings=drawSettings;drawSettings=function(){_drawSettings();bindSync()};
+applySettings();save();sync();render();go(settings.start==='list'?1:0,false);startSync();setSync(SY?'ok':'off');
 /* build stamp: bump BUILD (and VERSION in sw.js) with every release */
 const BUILD={v:10,at:'2026-10-28T16:30:00-04:00'};
 (function stamp(){const b=$('#build'),d=new Date(BUILD.at);
