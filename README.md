@@ -67,4 +67,5 @@ Edit `index.html`, bump `BUILD` near the end of `index.html` and `VERSION` at th
 - **List:** swipe a row right to mark it done, left to delete, or tap it to edit or change its level.
 - **Switching screens:** swipe left from Capture to the list. Tap "‹ Add" or swipe in from the left edge to go back.
 - **The cat:** tap it for a suggestion.
-- **Deep Dive:** arrow keys work too (← Low, ↑ Med, → High, ↓ Skip).
+- **Deep Dive:** arrow keys work too (← Low, ↑ Med, → High, ↓ or Space Skip, D done, Delete/⌫ delete, Z undo, Esc close).
+- **Mac trackpad:** two-finger swipe a row right for done or left to delete, swipe Deep Dive cards in any direction, and swipe sideways on the capture screen or list header to switch screens.

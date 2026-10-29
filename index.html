@@ -31,7 +31,7 @@
   --row-h:40px; --acc-t:var(--acid); --dots:rgba(233,235,228,.05); --ph:#565b57; --pet-bg:#06205e; --pet-face:#e0482c; --pet-hi:#fff; --pet-shadow:#06164f; --pet-bub:#0b1a6e; --pet-line:#3a63ff; --pet-dim:#aebbff; --ts:1; --ink1:#fff; --ink2:#0a0b0c; --ink3:#0a0b0c;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior-x:none}
 html{background:var(--void)}
 [hidden]{display:none!important}
 body{margin:0;background:var(--stage);color:var(--ink);font-family:var(--mono);font-size:15px;line-height:1.5;font-variation-settings:"wdth" 87.5;overflow:hidden;
@@ -310,6 +310,8 @@ body.bare .sheet,body.bare .dive{padding-top:calc(env(safe-area-inset-top, 0px) 
 .card .tint{position:absolute;inset:0;opacity:0;pointer-events:none}
 .card .stamp{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);font-family:var(--stencil);font-size:84px;line-height:1;text-transform:uppercase;padding:2px 14px;border:5px solid currentColor;opacity:0;pointer-events:none;white-space:nowrap;background:var(--void)}
 .dv-hint{display:flex;justify-content:space-between}
+.dv-keys{display:none;text-align:center;color:var(--dim)}
+@media (hover:hover) and (pointer:fine){.dv-keys{display:block}}
 .dv-pads{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .dv-pads .pad{height:64px}
 .pad[data-dl="1"]{background:var(--blue);color:var(--ink1)}.pad[data-dl="2"]{background:var(--orange);color:var(--ink2)}.pad[data-dl="3"]{background:var(--mag);color:var(--ink3)}
@@ -675,6 +677,7 @@ body.bare .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
           <div class="ov-top"><button class="ghostb" id="dvX">✕ Close</button><span class="micro dvc" id="dvCount"></span><button class="ghostb" id="dvUndo" disabled>Undo</button></div>
           <div class="dv-stage" id="dvStage"></div>
           <div class="dv-hint micro"><span>← Low</span><span>↑ Med · ↓ Skip</span><span>High →</span></div>
+          <div class="dv-keys micro" aria-hidden="true">Arrow keys or two-finger swipe · D done · ⌫ delete · Z undo · Esc close</div>
           <div class="dv-pads"><button class="pad" data-dl="1"><span class="bars"><i style="height:5px"></i><i class="off" style="height:10px"></i><i class="off" style="height:16px"></i></span>Low</button><button class="pad" data-dl="2"><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i class="off" style="height:16px"></i></span>Med</button><button class="pad" data-dl="3"><span class="bars"><i style="height:5px"></i><i style="height:10px"></i><i style="height:16px"></i></span>High</button></div>
           <div class="dv-sub"><button class="ghostb" data-dact="skip">Skip</button><button class="ghostb" data-dact="done">Already done</button><button class="ghostb del" data-dact="del">Delete</button></div>
         </section>
@@ -804,6 +807,19 @@ function fit(){const bare=innerWidth<500||matchMedia('(display-mode: standalone)
 addEventListener('resize',fit);fit();
 (function clock(){const d=new Date();$('#clock').textContent=`${d.getHours()%12||12}:${String(d.getMinutes()).padStart(2,'0')}`;setTimeout(clock,30000)})();
 
+/* ---------- trackpad swipes ----------
+   A two-finger swipe on a Mac trackpad arrives as horizontal wheel events.
+   wheelPx normalises them to pixels; after a swipe commits, the trailing
+   momentum events are swallowed until the trackpad goes quiet. */
+const wheelPx=(ev,d)=>d*(ev.deltaMode===1?16:ev.deltaMode===2?400:1);
+let wheelLock=false,wheelLockT=null;
+function lockWheel(){wheelLock=true;clearTimeout(wheelLockT);wheelLockT=setTimeout(()=>wheelLock=false,260)}
+document.addEventListener('wheel',ev=>{
+  if(wheelLock){ev.preventDefault();ev.stopPropagation();lockWheel();return}
+  // keep Safari's back/forward swipe from leaving the app, except in rows of chips that scroll sideways
+  if(Math.abs(ev.deltaX)>Math.abs(ev.deltaY)&&!ev.target.closest('.chips'))ev.preventDefault();
+},{passive:false,capture:true});
+
 /* ---------- pager ---------- */
 const track=$('#track'),vp=$('#viewport');
 function go(p,anim=true){
@@ -825,6 +841,12 @@ function pagerDrag(el,from,accept){
   el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
 }
 pagerDrag($('#cap'),0,e=>!e.target.closest('button')&&!(e.pointerType==='mouse'&&e.target===entry));
+(function pagerWheel(){let acc=0,t=null;
+  const onWheel=(from)=>ev=>{if(wheelLock||Math.abs(ev.deltaX)<=Math.abs(ev.deltaY))return;
+    if(from===1&&ev.target.closest('.row,.chips,.edit'))return;ev.preventDefault();
+    acc-=wheelPx(ev,ev.deltaX);clearTimeout(t);t=setTimeout(()=>acc=0,160);
+    if(from===0&&acc<-70){acc=0;lockWheel();go(1)}else if(from===1&&acc>70){acc=0;lockWheel();go(0)}};
+  $('#cap').addEventListener('wheel',onWheel(0),{passive:false});$('#man').addEventListener('wheel',onWheel(1),{passive:false})})();
 pagerDrag($('#edge'),1,()=>true);
 
 /* ---------- capture ---------- */
@@ -912,6 +934,18 @@ function row(it,color,idx){
     r.classList.add('snap');face.style.transform='';const d=dx;r.classList.remove('arm-done','arm-del');
     if(d>th())complete(it,!it.done,r);else if(d<-th())remove(it,r)});
   face.addEventListener('pointercancel',()=>{down=false;face.style.transform='';r.classList.remove('arm-done','arm-del')});
+  let wx=0,wOn=false,wT=null;
+  const wEnd=()=>{if(!wOn)return;wOn=false;const d=wx;wx=0;r.classList.add('snap');face.style.transform='';r.classList.remove('arm-done','arm-del');
+    if(d>th()){lockWheel();complete(it,!it.done,r)}else if(d<-th()){lockWheel();remove(it,r)}};
+  face.addEventListener('wheel',ev=>{
+    if(!wOn&&Math.abs(ev.deltaX)<=Math.abs(ev.deltaY))return; // vertical: let the list scroll
+    ev.preventDefault();if(wheelLock)return;
+    if(!wOn){wOn=true;r.classList.remove('snap')}
+    wx=Math.max(-r.offsetWidth,Math.min(r.offsetWidth,wx-wheelPx(ev,ev.deltaX)));face.style.transform=`translateX(${wx}px)`;
+    const wasD=r.classList.contains('arm-done'),wasX=r.classList.contains('arm-del');
+    r.classList.toggle('arm-done',wx>th());r.classList.toggle('arm-del',wx<-th());
+    if((!wasD&&wx>th())||(!wasX&&wx<-th()))glitch(r.querySelector('.under'));
+    clearTimeout(wT);wT=setTimeout(wEnd,140)},{passive:false});
   return r;
 }
 const focusEdit=()=>requestAnimationFrame(()=>{const i=$('#list .edit input');if(i){i.focus({preventScroll:true});i.setSelectionRange(i.value.length,i.value.length)}});
@@ -1059,6 +1093,12 @@ function bindCard(c){
     const s=strength();aim(c,s>.15?dirOf():null,s)});
   const end=()=>{if(!on)return;on=false;if(strength()>=1)decide(dirOf(),c);else{c.classList.add('back');c.style.transform='';aim(c,null,0)}};
   c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+  let wT=null,wOn=false;
+  c.addEventListener('wheel',ev=>{ev.preventDefault();if(wheelLock||on)return;
+    if(!wOn){wOn=true;dx=dy=0;c.classList.remove('back')}
+    dx-=wheelPx(ev,ev.deltaX);dy-=wheelPx(ev,ev.deltaY);
+    c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*.06}deg)`;const s=strength();aim(c,s>.15?dirOf():null,s);
+    clearTimeout(wT);wT=setTimeout(()=>{wOn=false;if(strength()>=1){lockWheel();decide(dirOf(),c)}else{c.classList.add('back');c.style.transform='';aim(c,null,0)}dx=dy=0},140)},{passive:false});
 }
 function decide(dir,c){
   const it=current();if(!it)return;c=c||stage.querySelector('.card:not(.next)');
@@ -1081,8 +1121,14 @@ $('#dvUndo').onclick=()=>{const h=dhist.pop();if(!h)return;
   dtally[h.dir]--;const k=dq.indexOf(h.id);if(k>=0)di=k;save();glitch(stage);drawCards(false)};
 document.querySelectorAll('[data-dl]').forEach(b=>b.addEventListener('click',()=>{jolt(b);decide(+b.dataset.dl)}));
 document.querySelectorAll('[data-dact]').forEach(b=>b.addEventListener('click',()=>decide(b.dataset.dact)));
-addEventListener('keydown',e=>{if(dive.hidden)return;const k={ArrowLeft:1,ArrowUp:2,ArrowRight:3,ArrowDown:'skip'}[e.key];
-  if(k){e.preventDefault();e.stopPropagation();decide(k)}else if(e.key==='Escape'){e.stopPropagation();closeDive()}},true);
+addEventListener('keydown',e=>{if(dive.hidden||e.repeat&&e.key.startsWith('Arrow'))return;
+  const k={ArrowLeft:1,ArrowUp:2,ArrowRight:3,ArrowDown:'skip',' ':'skip',d:'done',D:'done',Backspace:'del',Delete:'del'}[e.key];
+  const card=()=>stage.querySelector('.card:not(.next)');
+  if((e.key==='z'||e.key==='Z')&&!$('#dvUndo').disabled){e.preventDefault();e.stopPropagation();$('#dvUndo').click();return}
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(k){e.preventDefault();e.stopPropagation();if(!current())return;const c=card();
+    if(c&&!RM&&DIR[k]){aim(c,k,1.1);setTimeout(()=>decide(k,c),90)}else decide(k)}
+  else if(e.key==='Escape'){e.stopPropagation();closeDive()}},true);
 function finishDive(){
   $('#dvCount').textContent=`${pad2(dq.length)} / ${pad2(dq.length)}`;$('#dvUndo').disabled=!dhist.length;
   const sorted=dtally[1]+dtally[2]+dtally[3],extra=[dtally.skip&&`${dtally.skip} skipped`,dtally.done&&`${dtally.done} already done`,dtally.del&&`${dtally.del} deleted`].filter(Boolean).join(' · ');
@@ -1527,7 +1573,7 @@ function redrawSets(){const sc=$('.sets-scroll').scrollTop;drawSettings();$('.se
 const _drawSettings=drawSettings;drawSettings=function(){_drawSettings();bindSync()};
 applySettings();save();sync();render();go(settings.start==='list'?1:0,false);startSync();setSync(SY?'ok':'off');
 /* build stamp: bump BUILD (and VERSION in sw.js) with every release */
-const BUILD={v:12,at:'2026-10-28T20:20:00-04:00'};
+const BUILD={v:13,at:'2026-10-28T20:40:00-04:00'};
 (function stamp(){const b=$('#build'),d=new Date(BUILD.at);
   const when=d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   b.textContent=`v${BUILD.v} · updated ${when}`;b.title=`Manifest version ${BUILD.v}, released ${d.toLocaleString()}`;
