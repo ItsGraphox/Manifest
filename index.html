@@ -1374,7 +1374,8 @@ function syncLabel(){if(!SY)return'Off';const n=DIRTY.size+(SY.settingsDirty?1:0
   if(!navigator.onLine)return`Offline${n?` · ${n} change${n>1?'s':''} waiting`:''}`;
   if(syState.s==='busy')return'Syncing…';
   if(n)return`${n} change${n>1?'s':''} waiting`;
-  return SY.lastAt?`Synced ${ageShort(SY.lastAt)==='now'?'just now':ageShort(SY.lastAt)+' ago'}`:'Synced'}
+  const base=SY.lastAt?`Synced ${ageShort(SY.lastAt)==='now'?'just now':ageShort(SY.lastAt)+' ago'}`:'Synced';
+  return base+(wsOpen?' · live':' · checking every 10s')}
 
 let pushT=null,pushing=false,pullQueued=false,pulling=false;
 function queuePush(){clearTimeout(pushT);pushT=setTimeout(pushNow,500);setSync(syState.s==='err'?'err':'wait')}
@@ -1426,21 +1427,24 @@ async function pullNow(){
   finally{pulling=false;if(pullQueued){pullQueued=false;pullNow()}}
 }
 /* live updates */
-let ws=null,wsTry=0,wsT=null;
+let ws=null,wsTry=0,wsT=null,wsOpen=false,wsPing=null;
 function connectLive(){
   if(!SY||ws||!navigator.onLine||document.hidden)return;
   try{ws=new WebSocket(`${syncUrl().replace(/^http/,'ws')}/v1/${SY.vault}/ws`)}catch(e){ws=null;return}
-  ws.onopen=()=>{wsTry=0};
+  ws.onopen=()=>{wsTry=0;wsOpen=true;setSync(syState.s);pullNow();
+    // keep the connection from being dropped as idle by phones and routers
+    clearInterval(wsPing);wsPing=setInterval(()=>{try{ws&&ws.readyState===1&&ws.send('ping')}catch(e){}},25000)};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}if((m.type==='changed'||m.type==='hello')&&m.seq>(SY.lastSeq||0))pullNow()};
-  ws.onclose=()=>{ws=null;if(!SY)return;clearTimeout(wsT);wsT=setTimeout(connectLive,Math.min(30000,1000*2**wsTry++))};
+  ws.onclose=()=>{ws=null;wsOpen=false;clearInterval(wsPing);setSync(syState.s);if(!SY)return;clearTimeout(wsT);wsT=setTimeout(connectLive,Math.min(30000,1000*2**wsTry++))};
   ws.onerror=()=>{try{ws&&ws.close()}catch(e){}};
 }
-function dropLive(){clearTimeout(wsT);if(ws){ws.onclose=null;try{ws.close()}catch(e){}ws=null}}
+function dropLive(){clearTimeout(wsT);clearInterval(wsPing);wsOpen=false;if(ws){ws.onclose=null;try{ws.close()}catch(e){}ws=null}}
 async function startSync(){if(!SY||!syncUrl())return;await loadKey();connectLive();await pullNow();if(DIRTY.size||SY.settingsDirty)pushNow();setSync(syState.s)}
 document.addEventListener('visibilitychange',()=>{if(!SY)return;if(document.hidden){dropLive()}else{connectLive();pullNow();pushNow()}});
 addEventListener('online',()=>{if(SY){connectLive();pullNow();pushNow()}});
 addEventListener('offline',()=>setSync(syState.s));
-setInterval(()=>{if(SY&&!document.hidden){if(!ws)pullNow();setSync(syState.s)}},60000);
+// safety net: check every 10s when the live connection is down, every 30s when it's up
+let syTick=0;setInterval(()=>{if(!SY||document.hidden)return;syTick++;if(!wsOpen){pullNow();if(!ws)connectLive()}else if(syTick%3===0)pullNow();setSync(syState.s)},10000);
 
 /* linking */
 async function createSync(pass){
@@ -1523,7 +1527,7 @@ function redrawSets(){const sc=$('.sets-scroll').scrollTop;drawSettings();$('.se
 const _drawSettings=drawSettings;drawSettings=function(){_drawSettings();bindSync()};
 applySettings();save();sync();render();go(settings.start==='list'?1:0,false);startSync();setSync(SY?'ok':'off');
 /* build stamp: bump BUILD (and VERSION in sw.js) with every release */
-const BUILD={v:11,at:'2026-10-28T19:55:00-04:00'};
+const BUILD={v:12,at:'2026-10-28T20:20:00-04:00'};
 (function stamp(){const b=$('#build'),d=new Date(BUILD.at);
   const when=d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   b.textContent=`v${BUILD.v} · updated ${when}`;b.title=`Manifest version ${BUILD.v}, released ${d.toLocaleString()}`;
